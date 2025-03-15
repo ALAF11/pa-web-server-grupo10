@@ -10,18 +10,30 @@ import java.nio.file.Paths;
  */
 public class MainHTTPServerThread extends Thread {
 
-    private static final String SERVER_ROOT = ""; // Define by user
-    private final int port;
+    private static String SERVER_ROOT; // Define by user
+    // private final int port;
     private ServerSocket server;
+    private final ServerConfig config;
+
+    static {
+        String configFilePath = System.getProperty("user.dir") + "/html/server.config";
+        ServerConfig config = ConfigLoader.loadConfig(configFilePath);
+        SERVER_ROOT = config.getServerRoot();
+    }
+
+    public MainHTTPServerThread(ServerConfig config){
+        this.config = config;
+    }
 
     /**
      * Constructor to initialize the HTTP server thread with a specified port.
      *
      * @param port The port number on which the server will listen.
-     */
+
     public MainHTTPServerThread(int port) {
         this.port = port;
     }
+     */
 
     /**
      * Reads a binary file and returns its contents as a byte array.
@@ -29,6 +41,7 @@ public class MainHTTPServerThread extends Thread {
      * @param path The file path to read.
      * @return A byte array containing the file's contents, or an empty array if an error occurs.
      */
+
     private byte[] readBinaryFile(String path) {
         try {
             return Files.readAllBytes(Paths.get(path));
@@ -65,53 +78,62 @@ public class MainHTTPServerThread extends Thread {
      */
     @Override
     public void run() {
+
         try {
-            server = new ServerSocket(port);
-            System.out.println("Server started on port: " + port);
-            System.out.println("Working Directory: " + System.getProperty("user.dir"));
+            server = new ServerSocket(config.getPort());
+            System.out.println("Server started on port: " + config.getPort());
+            //System.out.println("Working Directory: " + System.getProperty("user.dir"));
+            System.out.println("Server Root: " + SERVER_ROOT);
+            System.out.println("Document Root: " + config.getDocumentRoot());
 
             while (true) {
-                try (Socket client = server.accept();
-                     BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream()));
-                     OutputStream clientOutput = client.getOutputStream()) {
-
-                    System.out.println("New client connected: " + client);
-
-                    // Read and parse the HTTP request
-                    StringBuilder requestBuilder = new StringBuilder();
-                    String line;
-                    while (!(line = br.readLine()).isBlank()) {
-                        requestBuilder.append(line).append("\r\n");
-                    }
-
-                    String request = requestBuilder.toString();
-                    String[] tokens = request.split(" ");
-                    if (tokens.length < 2) {
-                        System.err.println("Invalid request received.");
-                        continue;
-                    }
-                    String route = tokens[1];
-                    System.out.println("Request received: " + request);
-
-                    // Serve the requested file
-                    byte[] content = readBinaryFile(SERVER_ROOT + route);
-
-                    // Send HTTP response headers
-                    clientOutput.write("HTTP/1.1 200 OK\r\n".getBytes());
-                    clientOutput.write("Content-Type: text/html\r\n".getBytes());
-                    clientOutput.write("\r\n".getBytes());
-
-                    // Send response body
-                    clientOutput.write(content);
-                    clientOutput.write("\r\n\r\n".getBytes());
-                    clientOutput.flush();
-                } catch (IOException e) {
-                    System.err.println("Error handling client request.");
-                    e.printStackTrace();
-                }
+                Socket client = server.accept();
+                System.out.println("New client connected: " + client);
+                new Thread(() -> handleClientRequest(client)).start();
             }
+
         } catch (IOException e) {
-            System.err.println("Server error: Unable to start on port " + port);
+            System.err.println("Server error: Unable to start on port " + config.getPort());
+            e.printStackTrace();
+        }
+    }
+
+    public void handleClientRequest(Socket client){
+
+        try(BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream()));
+
+            OutputStream clientOutput = client.getOutputStream()){
+            // Read and parse the HTTP request
+            StringBuilder requestBuilder = new StringBuilder();
+            String line;
+            while (!(line = br.readLine()).isBlank()) {
+                requestBuilder.append(line).append("\r\n");
+            }
+
+            String request = requestBuilder.toString();
+            String[] tokens = request.split(" ");
+            if (tokens.length < 2) {
+                System.err.println("Invalid request received.");
+                return;
+            }
+            String route = tokens[1];
+            System.out.println("Request received: " + request);
+
+            // Serve the requested file
+            byte[] content = readBinaryFile(SERVER_ROOT + route);
+
+            // Send HTTP response headers
+            clientOutput.write("HTTP/1.1 200 OK\r\n".getBytes());
+            clientOutput.write("Content-Type: text/html\r\n".getBytes());
+            clientOutput.write("\r\n".getBytes());
+
+            // Send response body
+            clientOutput.write(content);
+            clientOutput.write("\r\n\r\n".getBytes());
+            clientOutput.flush();
+
+        } catch (IOException e) {
+            System.err.println("Error handling client request.");
             e.printStackTrace();
         }
     }
