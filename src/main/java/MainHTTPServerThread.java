@@ -119,11 +119,24 @@ public class MainHTTPServerThread extends Thread {
             String route = tokens[1];
             System.out.println("Request received: " + request);
 
+            if(route.equals("/")){
+                route = "/index.html";
+            }
+
             // Serve the requested file
-            byte[] content = readBinaryFile(SERVER_ROOT + route);
+            String filePath = SERVER_ROOT + route;
+            File file = new File(filePath);
+
+            byte[] content;
+            if(file.exists() && !file.isDirectory()){
+                content = readBinaryFile(filePath);
+                clientOutput.write("HTTP/1.1 200 OK\r\n".getBytes());
+            } else {
+                content = readBinaryFile(SERVER_ROOT + "/404.html");
+            }   clientOutput.write("HTTP/1.1 404 Not Found\r\n".getBytes());
 
             // Send HTTP response headers
-            clientOutput.write("HTTP/1.1 200 OK\r\n".getBytes());
+
             clientOutput.write("Content-Type: text/html\r\n".getBytes());
             clientOutput.write("\r\n".getBytes());
 
