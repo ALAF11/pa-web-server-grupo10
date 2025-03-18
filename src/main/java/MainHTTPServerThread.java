@@ -11,9 +11,9 @@ import java.nio.file.Paths;
 public class MainHTTPServerThread extends Thread {
 
     private static String SERVER_ROOT; // Define by user
-    // private final int port;
     private ServerSocket server;
     private final ServerConfig config;
+    private final ThreadPool threadPool;
 
     static {
         String configFilePath = System.getProperty("user.dir") + "/html/server.config";
@@ -21,8 +21,9 @@ public class MainHTTPServerThread extends Thread {
         SERVER_ROOT = config.getServerRoot();
     }
 
-    public MainHTTPServerThread(ServerConfig config){
+    public MainHTTPServerThread(ServerConfig config, ThreadPool threadPool){
         this.config = config;
+        this.threadPool = threadPool;
     }
 
     /**
@@ -89,65 +90,14 @@ public class MainHTTPServerThread extends Thread {
             while (true) {
                 Socket client = server.accept();
                 System.out.println("New client connected: " + client);
-                new Thread(() -> handleClientRequest(client)).start();
+                threadPool.execute(new ClientHandler(client, SERVER_ROOT));
             }
 
         } catch (IOException e) {
             System.err.println("Server error: Unable to start on port " + config.getPort());
             e.printStackTrace();
-        }
-    }
-
-    public void handleClientRequest(Socket client){
-
-        try(BufferedReader br = new BufferedReader(new InputStreamReader(client.getInputStream()));
-
-            OutputStream clientOutput = client.getOutputStream()){
-            // Read and parse the HTTP request
-            StringBuilder requestBuilder = new StringBuilder();
-            String line;
-            while (!(line = br.readLine()).isBlank()) {
-                requestBuilder.append(line).append("\r\n");
-            }
-
-            String request = requestBuilder.toString();
-            String[] tokens = request.split(" ");
-            if (tokens.length < 2) {
-                System.err.println("Invalid request received.");
-                return;
-            }
-            String route = tokens[1];
-            System.out.println("Request received: " + request);
-
-            if(route.equals("/")){
-                route = "/index.html";
-            }
-
-            // Serve the requested file
-            String filePath = SERVER_ROOT + route;
-            File file = new File(filePath);
-
-            byte[] content;
-            if(file.exists() && !file.isDirectory()){
-                content = readBinaryFile(filePath);
-                clientOutput.write("HTTP/1.1 200 OK\r\n".getBytes());
-            } else {
-                content = readBinaryFile(SERVER_ROOT + "/404.html");
-            }   clientOutput.write("HTTP/1.1 404 Not Found\r\n".getBytes());
-
-            // Send HTTP response headers
-
-            clientOutput.write("Content-Type: text/html\r\n".getBytes());
-            clientOutput.write("\r\n".getBytes());
-
-            // Send response body
-            clientOutput.write(content);
-            clientOutput.write("\r\n\r\n".getBytes());
-            clientOutput.flush();
-
-        } catch (IOException e) {
-            System.err.println("Error handling client request.");
-            e.printStackTrace();
+        } finally {
+            threadPool.shutdown();
         }
     }
 }
