@@ -10,7 +10,12 @@ import java.nio.file.Paths;
  */
 public class MainHTTPServerThread extends Thread {
 
+
+    
+    // private final int port;
+
     private static String SERVER_ROOT; // Define by user
+
     private ServerSocket server;
     private final ServerConfig config;
     private final ThreadPool threadPool;
@@ -78,7 +83,7 @@ public class MainHTTPServerThread extends Thread {
      * Processes HTTP GET requests and serves files from the defined server root directory.
      */
     @Override
-    public void run() {
+    public void run() { //teste
 
         try {
             server = new ServerSocket(config.getPort());
