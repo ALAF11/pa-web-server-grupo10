@@ -10,7 +10,7 @@ import java.nio.file.Paths;
  */
 public class MainHTTPServerThread extends Thread {
 
-    private static String SERVER_ROOT; // Define by user
+    private static String SERVER_ROOT;
     // private final int port;
     private ServerSocket server;
     private final ServerConfig config;
