@@ -77,7 +77,7 @@ public class MainHTTPServerThread extends Thread {
      * Processes HTTP GET requests and serves files from the defined server root directory.
      */
     @Override
-    public void run() {
+    public void run() { //teste
 
         try {
             server = new ServerSocket(config.getPort());
