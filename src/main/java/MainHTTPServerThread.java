@@ -11,10 +11,8 @@ import java.nio.file.Paths;
 public class MainHTTPServerThread extends Thread {
 
 
-    
-    // private final int port;
 
-    private static String SERVER_ROOT; // Define by user
+    private static String SERVER_ROOT;
 
     private ServerSocket server;
     private final ServerConfig config;
@@ -22,7 +20,12 @@ public class MainHTTPServerThread extends Thread {
 
     static {
         String configFilePath = System.getProperty("user.dir") + "/html/server.config";
-        ServerConfig config = ConfigLoader.loadConfig(configFilePath);
+        ServerConfig config = null;
+        try {
+            config = ConfigLoader.loadConfig(configFilePath);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         SERVER_ROOT = config.getServerRoot();
     }
 
