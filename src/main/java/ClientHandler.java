@@ -18,7 +18,6 @@ public class ClientHandler implements Runnable {
     public void run() {
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
-
             OutputStream clientOutput = client.getOutputStream()) {
             // Read and parse the HTTP request
             StringBuilder requestBuilder = new StringBuilder();
@@ -27,7 +26,6 @@ public class ClientHandler implements Runnable {
                 requestBuilder.append(line).append("\r\n");
             }
 
-            Thread.sleep(3000);
             String request = requestBuilder.toString();
             String[] tokens = request.split(" ");
             if (tokens.length < 2) {
@@ -41,33 +39,31 @@ public class ClientHandler implements Runnable {
                 route = "/index.html";
             }
 
+            // Serve the requested file
             String filePath = serverRoot + route;
             File file = new File(filePath);
 
-                byte[] content;
-                if (file.exists() && !file.isDirectory()) {
-                    content = Files.readAllBytes(Paths.get(filePath));
-                    clientOutput.write("HTTP/1.1 200 OK\r\n".getBytes());
-                } else {
-                    content = Files.readAllBytes(Paths.get(serverRoot + "/404.html"));
-                    clientOutput.write("HTTP/1.1 404 Not Found\r\n".getBytes());
-                }
+            byte[] content;
+            if (file.exists() && !file.isDirectory()) {
+                content = Files.readAllBytes(Paths.get(filePath));
+                clientOutput.write("HTTP/1.1 200 OK\r\n".getBytes());
+            } else {
+                content = Files.readAllBytes(Paths.get(serverRoot + "/404.html"));
+                clientOutput.write("HTTP/1.1 404 Not Found\r\n".getBytes());
+            }
 
-                // Send HTTP response headers
-                clientOutput.write("Content-Type: text/html\r\n".getBytes());
-                clientOutput.write("\r\n".getBytes());
+            // Send HTTP response headers
+            clientOutput.write("Content-Type: text/html\r\n".getBytes());
+            clientOutput.write("\r\n".getBytes());
 
-                // Send response body
-                clientOutput.write(content);
-                clientOutput.write("\r\n\r\n".getBytes());
-                clientOutput.flush();
-
+            // Send response body
+            clientOutput.write(content);
+            clientOutput.write("\r\n\r\n".getBytes());
+            clientOutput.flush();
 
         } catch (IOException e) {
             System.err.println("Error handling client request.");
             e.printStackTrace();
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
         } finally {
             try {
                 client.close();
