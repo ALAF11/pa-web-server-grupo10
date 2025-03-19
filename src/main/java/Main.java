@@ -12,7 +12,7 @@ public class Main {
             serverThread.join();
 
         } catch (IOException e) {
-            System.err.println("Erro ao carregar o arquivo de configuração: " + e.getMessage());
+            System.err.println("Error loading the configuration file: " + e.getMessage());
             e.printStackTrace();
         } catch (InterruptedException e) {
             e.printStackTrace();
