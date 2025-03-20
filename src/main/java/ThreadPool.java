@@ -1,11 +1,12 @@
 import java.util.concurrent.LinkedBlockingDeque;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 public class ThreadPool extends ThreadPoolExecutor {
 
     public ThreadPool(int corePoolSize, int maximumPoolSize) {
-        super (corePoolSize, maximumPoolSize, 1, TimeUnit.MINUTES, new LinkedBlockingDeque<>());
+        super (corePoolSize, maximumPoolSize, 1, TimeUnit.MINUTES, new LinkedBlockingQueue<>());
     }
 
     @Override

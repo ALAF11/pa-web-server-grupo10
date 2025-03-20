@@ -10,24 +10,8 @@ import java.nio.file.Paths;
  */
 public class MainHTTPServerThread extends Thread {
 
-
-
-    private static String SERVER_ROOT;
-
-    private ServerSocket server;
     private final ServerConfig config;
     private final ThreadPool threadPool;
-
-    static {
-        String configFilePath = System.getProperty("user.dir") + "/html/server.config";
-        ServerConfig config = null;
-        try {
-            config = ConfigLoader.loadConfig(configFilePath);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        SERVER_ROOT = config.getServerRoot();
-    }
 
     public MainHTTPServerThread(ServerConfig config, ThreadPool threadPool){
         this.config = config;
@@ -86,23 +70,22 @@ public class MainHTTPServerThread extends Thread {
      * Processes HTTP GET requests and serves files from the defined server root directory.
      */
     @Override
-    public void run() { //teste
+    public void run() {
 
         try {
-            server = new ServerSocket(config.getPort());
-            System.out.println("Server started on port: " + config.getPort());
-            //System.out.println("Working Directory: " + System.getProperty("user.dir"));
-            System.out.println("Server Root: " + SERVER_ROOT);
-            System.out.println("Document Root: " + config.getDocumentRoot());
+            ServerSocket server = new ServerSocket(config.getIntConfig("server.port"));
+            System.out.println("Server started on port: " + config.getIntConfig("server.port"));
+            System.out.println("Server Root: " + config.getConfig("server.root"));
+            System.out.println("Document Root: " + config.getConfig("server.document.root"));
 
             while (true) {
                 Socket client = server.accept();
                 System.out.println("New client connected: " + client);
-                threadPool.execute(new ClientHandler(client, SERVER_ROOT));
+                threadPool.execute(new ClientHandler(client, config));
             }
 
         } catch (IOException e) {
-            System.err.println("Server error: Unable to start on port " + config.getPort());
+            System.err.println("Server error: Unable to start on port " + config.getIntConfig("server.port"));
             e.printStackTrace();
         } finally {
             threadPool.shutdown();

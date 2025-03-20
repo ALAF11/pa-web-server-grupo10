@@ -1,66 +1,23 @@
+import java.util.HashMap;
+import java.util.Map;
+
 public class ServerConfig {
-    private String serverRoot;
-    private int port;
-    private String documentRoot;
-    private String defaultPage;
-    private String defaultPageExtension;
-    private String page404;
-    private int maximumRequests;
 
+    private Map<String, String> configMap;
 
-    public String getServerRoot(){
-        return serverRoot;
+    public ServerConfig() {
+        this.configMap = new HashMap<>();
     }
 
-    public void setServerRoot(String serverRoot) {
-        this.serverRoot = serverRoot;
+    public void setConfig(String key, String value) {
+        configMap.put(key, value);
     }
 
-    public int getPort(){
-        return port;
+    public String getConfig(String key) {
+        return configMap.get(key);
     }
 
-    public void setPort(int port) {
-        this.port = port;
-    }
-
-    public String getDocumentRoot(){
-        return documentRoot;
-    }
-
-    public void setDocumentRoot(String documentRoot) {
-        this.documentRoot = documentRoot;
-    }
-
-    public String getDefaultPage(){
-        return defaultPage;
-    }
-
-    public void setDefaultPage(String defaultPage) {
-        this.defaultPage = defaultPage;
-    }
-
-    public String getDefaultPageExtension(){
-        return defaultPageExtension;
-    }
-
-    public void setDefaultPageExtension(String defaultPageExtension) {
-        this.defaultPageExtension = defaultPageExtension;
-    }
-
-    public String getPage404(){
-        return page404;
-    }
-
-    public void setPage404(String page404) {
-        this.page404 = page404;
-    }
-
-    public int getMaximumRequests(){
-        return maximumRequests;
-    }
-
-    public void setMaximumRequests(int maximumRequests) {
-        this.maximumRequests = maximumRequests;
+    public int getIntConfig(String key) {
+        return Integer.parseInt(configMap.get(key));
     }
 }
