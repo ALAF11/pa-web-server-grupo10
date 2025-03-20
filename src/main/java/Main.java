@@ -6,13 +6,13 @@ public class Main {
             String configFilePath = System.getProperty("user.dir") + "/html/server.config";
             ServerConfig config = ConfigLoader.loadConfig(configFilePath);
 
-            ThreadPool threadPool = new ThreadPool(config.getMaximumRequests(), config.getMaximumRequests());
+            ThreadPool threadPool = new ThreadPool(config.getIntConfig("server.maximum.requests"), config.getIntConfig("server.maximum.requests"));
             MainHTTPServerThread serverThread = new MainHTTPServerThread(config, threadPool);
             serverThread.start();
             serverThread.join();
 
         } catch (IOException e) {
-            System.err.println("Erro ao carregar o arquivo de configuração: " + e.getMessage());
+            System.err.println("Error loading the configuration file: " + e.getMessage());
             e.printStackTrace();
         } catch (InterruptedException e) {
             e.printStackTrace();

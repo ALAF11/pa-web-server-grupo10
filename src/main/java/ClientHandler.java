@@ -6,19 +6,21 @@ import java.nio.file.Paths;
 public class ClientHandler implements Runnable {
 
     private final Socket client;
-    private final String serverRoot;
+    private final ServerConfig config;
 
-    public ClientHandler(Socket client, String serverRoot) {
+    public ClientHandler(Socket client, ServerConfig config) {
 
         this.client = client;
-        this.serverRoot = serverRoot;
+        this.config = config;
     }
 
     @Override
     public void run() {
+
         try (BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream()));
 
             OutputStream clientOutput = client.getOutputStream()) {
+
             // Read and parse the HTTP request
             StringBuilder requestBuilder = new StringBuilder();
             String line;
@@ -36,11 +38,11 @@ public class ClientHandler implements Runnable {
             System.out.println("Request received: " + request);
 
             if (route.equals("/")) {
-                route = "/index.html";
+                route = "/" + config.getConfig("server.default.page") + "." + config.getConfig("server.default.page.extension");
             }
 
             // Serve the requested file
-            String filePath = serverRoot + route;
+            String filePath = config.getConfig("server.root") + route;
             File file = new File(filePath);
 
             byte[] content;
@@ -48,7 +50,7 @@ public class ClientHandler implements Runnable {
                 content = Files.readAllBytes(Paths.get(filePath));
                 clientOutput.write("HTTP/1.1 200 OK\r\n".getBytes());
             } else {
-                content = Files.readAllBytes(Paths.get(serverRoot + "/404.html"));
+                content = Files.readAllBytes(Paths.get(config.getConfig("server.root") + "/" + config.getConfig("server.page.404")));
                 clientOutput.write("HTTP/1.1 404 Not Found\r\n".getBytes());
             }
 
@@ -64,6 +66,7 @@ public class ClientHandler implements Runnable {
         } catch (IOException e) {
             System.err.println("Error handling client request.");
             e.printStackTrace();
+
         } finally {
             try {
                 client.close();
