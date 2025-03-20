@@ -35,3 +35,5 @@ html/*
 !html/favicon.ico
 !html/404.html
 
+# Ignore macOS system files
+.DS_Store
