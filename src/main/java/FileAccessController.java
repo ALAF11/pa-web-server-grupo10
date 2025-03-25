@@ -2,34 +2,35 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class FileAccessController {
-    private static final ConcurrentHashMap<String, Semaphore> fileLocks = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, ReentrantLock> fileLocks = new ConcurrentHashMap<>();
     private final String serverRoot;
 
     public FileAccessController(String serverRoot) {
         this.serverRoot = serverRoot;
     }
 
-    public byte [] readFile(String route) throws IOException, InterruptedException {
+    public byte[] readFile(String route) throws IOException, InterruptedException {
         String filePath = serverRoot + route;
         File file = new File(filePath);
 
-        Semaphore fileLock = fileLocks.computeIfAbsent(filePath, k -> new Semaphore(1, true));
+        ReentrantLock fileLock = fileLocks.computeIfAbsent(filePath, k -> new ReentrantLock());
+        fileLock.lock();
 
-        fileLock.acquire();
-
-        try{
+        try {
             if (file.exists() && !file.isDirectory()) {
                 return Files.readAllBytes(Paths.get(filePath));
-            }   else {
+            } else {
                 return Files.readAllBytes(Paths.get(serverRoot + "/404.html"));
             }
+        } finally {
+            fileLock.unlock();
 
-            } finally {
-            fileLock.release();
-            fileLocks.computeIfPresent(filePath, (key,sem) -> sem.availablePermits() == 1 ? null : sem);
+            if (fileLock.getHoldCount() == 0 && !fileLock.hasQueuedThreads()) {
+                fileLocks.remove(filePath, fileLock);
+            }
         }
     }
 }
