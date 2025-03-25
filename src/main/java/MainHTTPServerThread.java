@@ -12,10 +12,12 @@ public class MainHTTPServerThread extends Thread {
 
     private final ServerConfig config;
     private final ThreadPool threadPool;
+    private final FileAccessController fileAccessController;
 
-    public MainHTTPServerThread(ServerConfig config, ThreadPool threadPool){
+    public MainHTTPServerThread(ServerConfig config, ThreadPool threadPool, FileAccessController fileAccessController) {
         this.config = config;
         this.threadPool = threadPool;
+        this.fileAccessController = fileAccessController;
     }
 
     /**
@@ -81,7 +83,7 @@ public class MainHTTPServerThread extends Thread {
             while (true) {
                 Socket client = server.accept();
                 System.out.println("New client connected: " + client);
-                threadPool.execute(new ClientHandler(client, config));
+                threadPool.execute(new ClientHandler(client, config, fileAccessController));
             }
 
         } catch (IOException e) {
