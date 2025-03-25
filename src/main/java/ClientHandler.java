@@ -7,11 +7,13 @@ public class ClientHandler implements Runnable {
 
     private final Socket client;
     private final ServerConfig config;
+    private final FileAccessController fileAccessController;
 
-    public ClientHandler(Socket client, ServerConfig config) {
+    public ClientHandler(Socket client, ServerConfig config, FileAccessController fileAccessController) {
 
         this.client = client;
         this.config = config;
+        this.fileAccessController = fileAccessController;
     }
 
     @Override
@@ -41,22 +43,19 @@ public class ClientHandler implements Runnable {
                 route = "/" + config.getConfig("server.default.page") + "." + config.getConfig("server.default.page.extension");
             }
 
-            // Serve the requested file
-            String filePath = config.getConfig("server.root") + route;
-            File file = new File(filePath);
-
             byte[] content;
-            if (file.exists() && !file.isDirectory()) {
-                content = Files.readAllBytes(Paths.get(filePath));
+            try {
+                content = fileAccessController.readFile(route);
                 clientOutput.write("HTTP/1.1 200 OK\r\n".getBytes());
-            } else {
-                content = Files.readAllBytes(Paths.get(config.getConfig("server.root") + "/" + config.getConfig("server.page.404")));
+            } catch (IOException | InterruptedException e) {
+                clientOutput.write("Content-Type: text/html\r\n".getBytes());
+                try {
+                    content = Files.readAllBytes(Paths.get(config.getConfig("server.root") + "/" + config.getConfig("server.page.404")));
+                } catch (IOException ex) {
+                    content = "<html><body><h1>404 Not Found</h1></body></html>".getBytes();
+                }
                 clientOutput.write("HTTP/1.1 404 Not Found\r\n".getBytes());
             }
-
-            // Send HTTP response headers
-            clientOutput.write("Content-Type: text/html\r\n".getBytes());
-            clientOutput.write("\r\n".getBytes());
 
             // Send response body
             clientOutput.write(content);
