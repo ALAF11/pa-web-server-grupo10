@@ -5,9 +5,9 @@ public class Main {
         try {
             String configFilePath = System.getProperty("user.dir") + "/html/server.config";
             ServerConfig config = ConfigLoader.loadConfig(configFilePath);
-
+            FileAccessController FileAccessController = new FileAccessController(config.getConfig("server.root"));
             ThreadPool threadPool = new ThreadPool(config.getIntConfig("server.maximum.requests"), config.getIntConfig("server.maximum.requests"));
-            MainHTTPServerThread serverThread = new MainHTTPServerThread(config, threadPool);
+            MainHTTPServerThread serverThread = new MainHTTPServerThread(config, threadPool, FileAccessController);
             serverThread.start();
             serverThread.join();
 

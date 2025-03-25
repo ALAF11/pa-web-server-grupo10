@@ -4,11 +4,11 @@ import java.nio.file.Paths;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 
-public class FileAcessController {
+public class FileAccessController {
     private static final ConcurrentHashMap<String, Semaphore> fileLocks = new ConcurrentHashMap<>();
     private final String serverRoot;
 
-    public FileAcessController(String serverRoot) {
+    public FileAccessController(String serverRoot) {
         this.serverRoot = serverRoot;
     }
 
