@@ -8,9 +8,8 @@ public class LogEntry {
     private final String origin;
     private final int httpStatus;
 
-    public LogEntry(LocalDateTime timestamp, String method, String route, String origin, int httpStatus){
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-        this.timestamp = timestamp.format(formatter);
+    public LogEntry(String timestamp, String method, String route, String origin, int httpStatus){
+        this.timestamp = timestamp;
         this.method = method;
         this.route = route;
         this.origin = origin;

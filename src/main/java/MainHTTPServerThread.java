@@ -3,6 +3,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.concurrent.BlockingQueue;
 
 /**
  * A simple HTTP server that listens on a specified port.
@@ -13,11 +14,13 @@ public class MainHTTPServerThread extends Thread {
     private final ServerConfig config;
     private final ThreadPool threadPool;
     private final FileAccessController fileAccessController;
+    private BlockingQueue<LogEntry> logQueue;
 
-    public MainHTTPServerThread(ServerConfig config, ThreadPool threadPool, FileAccessController fileAccessController) {
+    public MainHTTPServerThread(ServerConfig config, ThreadPool threadPool, FileAccessController fileAccessController, BlockingQueue<LogEntry> logQueue) {
         this.config = config;
         this.threadPool = threadPool;
         this.fileAccessController = fileAccessController;
+        this.logQueue = logQueue;
     }
 
     /**
@@ -83,7 +86,7 @@ public class MainHTTPServerThread extends Thread {
             while (true) {
                 Socket client = server.accept();
                 System.out.println("New client connected: " + client);
-                threadPool.execute(new ClientHandler(client, config, fileAccessController));
+                threadPool.execute(new ClientHandler(client, config, fileAccessController, logQueue));
             }
 
         } catch (IOException e) {
