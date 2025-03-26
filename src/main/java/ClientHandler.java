@@ -1,5 +1,7 @@
 import java.io.*;
 import java.net.Socket;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.time.LocalDate;
@@ -43,6 +45,7 @@ public class ClientHandler implements Runnable {
                 return;
             }
             String route = tokens[1];
+            route = URLDecoder.decode(route, StandardCharsets.UTF_8);
             System.out.println("Request received: " + request);
 
             if (route.equals("/")) {
@@ -50,8 +53,8 @@ public class ClientHandler implements Runnable {
             }
 
             //Serve the request file
-            String filePath = config.getConfig("server.root") + route;
-            File file = new File(filePath);
+            //String filePath = config.getConfig("server.root") + route;
+            //File file = new File(filePath);
 
             byte[] content;
             int httpStatus;
@@ -62,11 +65,12 @@ public class ClientHandler implements Runnable {
             } catch (IOException | InterruptedException e) {
                 try {
                     content = Files.readAllBytes(Paths.get(config.getConfig("server.root") + "/" + config.getConfig("server.page.404")));
-                    httpStatus = 404;
+                    //httpStatus = 404;
                 } catch (IOException ex) {
                     content = "<html><body><h1>404 Not Found</h1></body></html>".getBytes();
-                    httpStatus = 404;
+
                 }
+                httpStatus = 404;
             }
 
             clientOutput.write(("HTTP/1.1 " + (httpStatus == 200 ? "200 OK" : "404 Not Found") + "\r\n").getBytes());
@@ -81,11 +85,13 @@ public class ClientHandler implements Runnable {
             clientOutput.flush();
 
             //Create log entry
-            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm"));
-            String method = "GET";
-            String origin = client.getInetAddress().toString();
-
-            LogEntry logEntry = new LogEntry(timestamp, method, route, origin, httpStatus);
+            LogEntry logEntry = new LogEntry(
+                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")),
+                    "GET",
+                    route,
+                    client.getInetAddress().toString(),
+                    httpStatus
+            );
 
             logQueue.put(logEntry);
 
