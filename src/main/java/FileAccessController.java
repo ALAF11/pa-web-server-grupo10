@@ -23,7 +23,8 @@ public class FileAccessController {
             if (file.exists() && !file.isDirectory()) {
                 return Files.readAllBytes(Paths.get(filePath));
             } else {
-                return Files.readAllBytes(Paths.get(serverRoot + "/404.html"));
+                throw new IOException("File not found: " + filePath);
+                //return Files.readAllBytes(Paths.get(serverRoot + "/404.html"));
             }
         } finally {
             fileLock.unlock();

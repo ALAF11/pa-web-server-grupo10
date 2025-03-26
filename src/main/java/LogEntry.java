@@ -23,7 +23,7 @@ public class LogEntry {
                         "\"method\": \"%s\", \n" +
                         "\"route\": \"%s\", \n" +
                         "\"origin\": \"%s\", \n" +
-                        "\"httpStatus\": \"%d\", \n" +
+                        "\"httpStatus\": %d\n" +
                 "}", timestamp, method, route, origin, httpStatus
 
         );
