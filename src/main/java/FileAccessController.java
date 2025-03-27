@@ -6,14 +6,15 @@ import java.util.concurrent.locks.ReentrantLock; //com locks, trancas
 
 public class FileAccessController {
     private static final ConcurrentHashMap<String, ReentrantLock> fileLocks = new ConcurrentHashMap<>();
-    private final String serverRoot;
+    private final ServerConfig config;
 
-    public FileAccessController(String serverRoot) {
-        this.serverRoot = serverRoot;
+    public FileAccessController(ServerConfig config) {
+
+        this.config = config;
     }
 
     public byte[] readFile(String route) throws IOException, InterruptedException {
-        String filePath = serverRoot + route;
+        String filePath = config.getConfig("server.root") + route;
         File file = new File(filePath);
 
         ReentrantLock fileLock = fileLocks.computeIfAbsent(filePath, k -> new ReentrantLock());
@@ -24,7 +25,7 @@ public class FileAccessController {
                 return Files.readAllBytes(Paths.get(filePath));
             } else {
                 throw new IOException("File not found: " + filePath);
-                //return Files.readAllBytes(Paths.get(serverRoot + "/404.html"));
+
             }
         } finally {
             fileLock.unlock();
