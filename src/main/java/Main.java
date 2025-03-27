@@ -14,9 +14,9 @@ public class Main {
             Thread logConsumerThread = new Thread(new LogConsumer(logQueue, config.getConfig("server.log.file")));
             logConsumerThread.start();
 
-            FileAccessController FileAccessController = new FileAccessController(config.getConfig("server.root"));
+            FileAccessController fileAccessController = new FileAccessController(config);
             ThreadPool threadPool = new ThreadPool(config.getIntConfig("server.maximum.requests"), config.getIntConfig("server.maximum.requests"));
-            MainHTTPServerThread serverThread = new MainHTTPServerThread(config, threadPool, FileAccessController, logQueue);
+            MainHTTPServerThread serverThread = new MainHTTPServerThread(config, threadPool, fileAccessController, logQueue);
             serverThread.start();
             serverThread.join();
 
