@@ -37,23 +37,19 @@ public class FileAccessController {
      * Reads a file from the server's root directory with a thread-safe access control.
      * <p>
      *     This method performs several security checks and operations:
-     *     <ol>
-     *         <li> Validates the requested path against the server root to prevent path traversal </li>
-     *         <li> Acquires an exclusive lock for the life with timeout </li>
-     *         <li> Verifies file existence and type </li>
-     *         <li> Reads file contents </li>
-     *         <li> Releases the lock and cleans up </li>
-     *     </ol>
+     * Validates the requested path against the server root to prevent path traversal.
+     * Acquires an exclusive lock for the life with timeout.
+     * Verifies file existence and type.
+     * Reads file contents and releases the lock and cleans up.
+     *
      * @param route the relative path of the file to read from server root
      * @return byte array containing the file contents
-     * @throws IOException if:
-     * <ul>
-     *     <li> Path traversak attempt is detected </li>
-     *     <li> File is not found </li>
-     *     <li> Path is a directory </li>
-     *     <li> Timeout occurs while waiting for file lock </li>
-     *     <li> General I/O error occurs during reading </li>
-     * </ul>
+     * @throws IOException if path traversak attempt is detected,
+     * file is not found,
+     * path is a directory,
+     * timeout occurs while waiting for file lock or
+     * general I/O error occurs during reading
+     *
      * @throws InterruptedException if the thread is interrupted while waiting for the lock
      */
 

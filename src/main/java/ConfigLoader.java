@@ -6,8 +6,9 @@ import java.util.Properties;
  * The configLoader class provides functionality to load server configuration from a properties file.
  * <p>
  *     This utility class reads a configuration file in Java Properties format and creates
- *     a {@link ServerConfig} object populated with the configuration values. It handles
- *     the file loading and parsing operations, converting the flat properties structure
+ *     a {@link ServerConfig} object populated with the configuration values.
+ *     <p>
+ *         It handles the file loading and parsing operations, converting the flat properties structure
  *     into a configuration object for the server
  *     
  * @see ServerConfig
@@ -19,22 +20,14 @@ public class ConfigLoader {
     /**
      * Loads server configuration from the specified file path.
      * <p>
-     *     The method performs the following operations:
-     *     <ol>
-     *         <li> Opens configuration file for reading </li>
-     *         <li> Parses the properties format </li>
-     *         <li> Creates and populates a ServerConfig object </li>
-     *         <li> Ensures proper resource cleanup </li>
-     *     </ol>
+     *     The method opens the configuration file, parses the properties format,
+     *     creates and populates a ServerConfig objecct, and ensures proper resource clean up.
+     *     <p>
      * @param configFilePath the absolute or relative path to the configuration file
      * @return a fully populated ServerConfig object
-     * @throws IOException if any of the following occurs:
-     * <ul>
-     *     <li> The configuration file cannot be found </li>
-     *     <li> There are permission issues reading the file </li>
-     *     <li> The file format is invalid </li>
-     *     <li> Any other I/O error occurs during reading </li>
-     * </ul>
+     * @throws IOException if the configuration file cannot be found or there are
+     * permission issues reading the file or the file format is invalid or any
+     * other I/O error occurs during reading
      * 
      * @see ServerConfig#setConfig(String, String)
      */

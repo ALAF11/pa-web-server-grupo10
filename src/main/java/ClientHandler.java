@@ -12,7 +12,8 @@ import java.util.concurrent.BlockingQueue;
  * The ClientHandler class represents a thread that handles individual client connections to the HTTP server.
  * <p>
  * It processes HTTP requests, serves files from the server's root directory, and logs all requests
- * to a centralized logging system. The class implements proper file access control, error handling,
+ * to a centralized logging system.
+ * The class implements proper file access control, error handling,
  * and concurrent request management.
  */
 
