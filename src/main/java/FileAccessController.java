@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class FileAccessController {
+
     private static final ConcurrentHashMap<String, ReentrantLock> fileLocks = new ConcurrentHashMap<>();
     private final ServerConfig config;
     private static final long LOCK_TIMEOUT_SECONDS = 5;
@@ -38,20 +39,20 @@ public class FileAccessController {
                 k -> new ReentrantLock(true)
         );
 
-        System.out.printf("[%s] Tentando adquirir lock para: %s (Threads na fila: %d)%n",
+        System.out.printf("[%s] Trying to acquire lock for: %s (Queued threads: %d)%n",
                 Thread.currentThread().getName(),
                 filePath,
                 fileLock.getQueueLength());
 
         if (!fileLock.tryLock(LOCK_TIMEOUT_SECONDS, TimeUnit.SECONDS)) {
-            System.err.printf("[%s] Timeout ao esperar pelo lock: %s%n",
+            System.err.printf("[%s] Timeout when waiting for lock: %s%n",
                     Thread.currentThread().getName(),
                     filePath);
             throw new IOException("Timeout waiting for file access: " + filePath);
         }
 
         try {
-            System.out.printf("[%s] Lock adquirido para: %s (Tempo no sistema: %dns)%n",
+            System.out.printf("[%s] Lock acquired for: %s (Time on the system: %dns)%n",
                     Thread.currentThread().getName(),
                     filePath,
                     System.nanoTime());
@@ -67,7 +68,7 @@ public class FileAccessController {
 
             return Files.readAllBytes(filePath);
         } finally {
-            System.out.printf("[%s] Liberando lock para: %s (Tempo no sistema: %dns)%n",
+            System.out.printf("[%s] Releasing lock: %s (Tempo no sistema: %dns)%n",
                     Thread.currentThread().getName(),
                     filePath,
                     System.nanoTime());
