@@ -18,23 +18,13 @@ public class MainHTTPServerThread extends Thread {
     private BlockingQueue<LogEntry> logQueue;
     private final Semaphore requestLimiter;
 
-    public MainHTTPServerThread(ServerConfig config, ThreadPool threadPool, FileAccessController fileAccessController, BlockingQueue<LogEntry> logQueue) {
+    public MainHTTPServerThread(ServerConfig config, ThreadPool threadPool, FileAccessController fileAccessController, BlockingQueue<LogEntry> logQueue, Semaphore requestLimiter) {
         this.config = config;
         this.threadPool = threadPool;
         this.fileAccessController = fileAccessController;
         this.logQueue = logQueue;
-        this.requestLimiter = new Semaphore(config.getIntConfig("server.max.total.requests"), true);
+        this.requestLimiter = requestLimiter;
     }
-
-    /**
-     * Constructor to initialize the HTTP server thread with a specified port.
-     *
-     * @param port The port number on which the server will listen.
-
-    public MainHTTPServerThread(int port) {
-    this.port = port;
-    }
-     */
 
     /**
      * Reads a binary file and returns its contents as a byte array.
@@ -42,7 +32,6 @@ public class MainHTTPServerThread extends Thread {
      * @param path The file path to read.
      * @return A byte array containing the file's contents, or an empty array if an error occurs.
      */
-
     private byte[] readBinaryFile(String path) {
         try {
             return Files.readAllBytes(Paths.get(path));
@@ -79,7 +68,6 @@ public class MainHTTPServerThread extends Thread {
      */
     @Override
     public void run() {
-
         try {
             ServerSocket server = new ServerSocket(config.getIntConfig("server.port"));
             System.out.println("Server started on port: " + config.getIntConfig("server.port"));
@@ -105,4 +93,3 @@ public class MainHTTPServerThread extends Thread {
         }
     }
 }
-
