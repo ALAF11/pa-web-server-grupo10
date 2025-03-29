@@ -1,3 +1,4 @@
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -5,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class ServerConfigTest {
 
     @Test
+    @DisplayName("Should correctly set and retrieve a string configuration value")
     public void testSetAndGetConfig(){
         //arrange
         ServerConfig config = new ServerConfig();
@@ -20,6 +22,7 @@ public class ServerConfigTest {
     }
 
     @Test
+    @DisplayName("Should correctly convert and retrieve a numeric configuration value")
     public void testGetIntConfig(){
         //arrange
         ServerConfig config = new ServerConfig();
@@ -36,6 +39,7 @@ public class ServerConfigTest {
     }
 
     @Test
+    @DisplayName("Should return null when getting a non-existent configuration key")
     public void testGetNonExistentConfig(){
         //arrange
         ServerConfig config = new ServerConfig();
@@ -49,6 +53,7 @@ public class ServerConfigTest {
     }
 
     @Test
+    @DisplayName("Should throw NumberFormatException when getting non-numeric value as integer")
     public void testGetIntConfigWithInvalidNumber(){
         //arrange
         ServerConfig config = new ServerConfig();
