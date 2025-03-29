@@ -1,5 +1,6 @@
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,8 +15,9 @@ import java.util.concurrent.TimeUnit;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class FileAccessControllerTest {
+
     private static ServerConfig config;
-    private static String testFile = "teste.html";
+    private static final String testFile = "test.html";
 
     @BeforeAll
     public static void setup() throws Exception {
@@ -40,6 +42,7 @@ public class FileAccessControllerTest {
     }
 
     @Test
+    @DisplayName("Must allow controlled concurrent access to the same file")
     public void testConcurrentReads() throws InterruptedException, IOException {
         FileAccessController controller = new FileAccessController(config);
         Path testFilePath = Paths.get(config.getConfig("server.root"), testFile);
@@ -50,47 +53,38 @@ public class FileAccessControllerTest {
         CountDownLatch startLatch = new CountDownLatch(1);
         CountDownLatch endLatch = new CountDownLatch(threadCount);
 
-        System.out.println("Iniciando teste com " + threadCount + " threads...");
-
         for (int i = 0; i < threadCount; i++) {
-            final int threadNumber = i + 1;
-            executor.submit(() -> {
-                try {
-                    System.out.printf("Thread %d aguardando sinal para iniciar (%s)%n",
-                            threadNumber,
-                            Thread.currentThread().getName());
-
-                    startLatch.await();
-
-                    System.out.printf("Thread %d iniciando leitura (%s)%n",
-                            threadNumber,
-                            Thread.currentThread().getName());
-
-                    long startTime = System.nanoTime();
-                    byte[] content = controller.readFile(testFile);
-                    long endTime = System.nanoTime();
-
-                    assertArrayEquals(expectedContent, content);
-
-                    System.out.printf("Thread %d concluída em %d ms%n",
-                            threadNumber,
-                            TimeUnit.NANOSECONDS.toMillis(endTime - startTime));
-                } catch (Exception e) {
-                    System.err.printf("Thread %d falhou: %s%n",
-                            threadNumber,
-                            e.getMessage());
-                    fail("Thread " + threadNumber + " failed: " + e.getMessage());
-                } finally {
-                    endLatch.countDown();
-                }
-            });
+            executor.submit(createTestTask(controller, expectedContent, startLatch, endLatch, i));
         }
 
-        System.out.println("Liberando todas as threads simultaneamente...");
-        startLatch.countDown();
+        startLatch.countDown(); // unlocks all threads
+        assertTrue(endLatch.await(10, TimeUnit.SECONDS), "Time exceeded");
+        executor.shutdownNow();
+    }
 
-        assertTrue(endLatch.await(10, TimeUnit.SECONDS), "Test timed out");
-        System.out.println("Todas as threads concluíram o processamento.");
+    private Runnable createTestTask(FileAccessController controller, byte[] expectedContent, CountDownLatch startLatch, CountDownLatch endLatch, int threadNumber) {
+        return () -> {
+            try {
+                startLatch.await();
+                Thread.sleep(threadNumber * 10);
 
-        executor.shutdown();
-    }}
+                long startTime = System.nanoTime();
+                byte[] content = controller.readFile(testFile);
+                long duration = System.nanoTime() - startTime;
+
+                assertArrayEquals(expectedContent, content, "Read content differs from what is expected in the thread" + threadNumber);
+
+                System.out.printf("Thread %d completed at %d ms%n", threadNumber + 1, TimeUnit.NANOSECONDS.toMillis(duration));
+
+            } catch (InterruptedException e) {
+                fail("Thread failed " + threadNumber, e);
+
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+
+            } finally {
+                endLatch.countDown();
+            }
+        };
+    }
+}
