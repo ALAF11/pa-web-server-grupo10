@@ -1,6 +1,7 @@
 import java.io.IOException;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Semaphore;
 
 public class Main {
 
@@ -16,7 +17,8 @@ public class Main {
 
             FileAccessController fileAccessController = new FileAccessController(config);
             ThreadPool threadPool = new ThreadPool(config.getIntConfig("server.maximum.requests"), config.getIntConfig("server.maximum.requests"));
-            MainHTTPServerThread serverThread = new MainHTTPServerThread(config, threadPool, fileAccessController, logQueue);
+            Semaphore requestLimiter = new Semaphore(config.getIntConfig("server.max.total.requests"), true);
+            MainHTTPServerThread serverThread = new MainHTTPServerThread(config, threadPool, fileAccessController, logQueue, requestLimiter);
             serverThread.start();
             serverThread.join();
 

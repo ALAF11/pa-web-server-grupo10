@@ -4,14 +4,14 @@ import java.util.concurrent.*;
 public class MainHTTPServerThreadTest {
 
     @Test
-    public void testVisualizacaoFluxo() throws InterruptedException {
-        int MAX_TOTAL = 5;
-        int MAX_POOL = 2;
+    public void testConcurrencyFlow() throws InterruptedException {
+        int MAX_TOTAL_REQUESTS = 5;
+        int MAX_POOL_THREADS = 2;
 
-        System.out.println("[CONFIG] Semáforo = " + MAX_TOTAL + " permits | ThreadPool = " + MAX_POOL + " threads");
+        System.out.println("[CONFIG] semaphore = " + MAX_TOTAL_REQUESTS + " permits | ThreadPool = " + MAX_POOL_THREADS + " threads");
 
-        Semaphore semaforo = new Semaphore(MAX_TOTAL, true);
-        ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(MAX_POOL);
+        Semaphore sem = new Semaphore(MAX_TOTAL_REQUESTS, true);
+        ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(MAX_POOL_THREADS);
 
         CountDownLatch latch = new CountDownLatch(30);
 
@@ -19,19 +19,19 @@ public class MainHTTPServerThreadTest {
             final int taskId = i;
             new Thread(() -> {
                 try {
-                    System.out.printf("[ENTRADA] Task %d quer entrar | Semáforo: %d/%d | ThreadPool: %d/%d%n",
+                    System.out.printf("[ENTRY] Task %d requesting acess | Semaphore: %d/%d | Active threads: %d/%d%n",
                             taskId,
-                            semaforo.availablePermits(), MAX_TOTAL,
-                            threadPool.getActiveCount(), MAX_POOL);
+                            sem.availablePermits(), MAX_TOTAL_REQUESTS,
+                            threadPool.getActiveCount(), MAX_POOL_THREADS);
 
-                    semaforo.acquire();
+                    sem.acquire();
 
-                    System.out.printf("[SEMAFORO] Task %d adquiriu permit | Livres: %d%n",
-                            taskId, semaforo.availablePermits());
+                    System.out.printf("[SEMAPHORE] Task %d acquired permit | Available: %d%n",
+                            taskId, sem.availablePermits());
 
                     threadPool.execute(() -> {
                         try {
-                            System.out.printf("[THREADPOOL] Task %d começou | Threads ativas: %d%n",
+                            System.out.printf("[THREADPOOL] Task %d started | Active Threads: %d%n",
                                     taskId, threadPool.getActiveCount());
 
                             Thread.sleep(300);
@@ -39,10 +39,10 @@ public class MainHTTPServerThreadTest {
                         } catch (InterruptedException e) {
                             Thread.currentThread().interrupt();
                         } finally {
-                            semaforo.release();
+                            sem.release();
                             latch.countDown();
-                            System.out.printf("[FIM] Task %d completou | Semáforo liberado: %d/%d%n",
-                                    taskId, semaforo.availablePermits(), MAX_TOTAL);
+                            System.out.printf("[EXIT] Task %d completed | Semaphore released: %d/%d%n",
+                                    taskId, sem.availablePermits(), MAX_TOTAL_REQUESTS);
                         }
                     });
 
