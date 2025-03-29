@@ -3,7 +3,19 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
 
+/**
+ * The Main class is the entry point for the HTTP server application.
+ * <p> This class initializes all server component including configuration,
+ * thread pool, acess controller, and logging system.
+ */
+
 public class Main {
+
+    /**
+     * The main method that starts the HTTP server.
+     *
+     * @param args command line argumments
+     */
 
     public static void main(String[] args) {
         try {

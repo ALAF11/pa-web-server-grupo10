@@ -4,10 +4,18 @@ import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.concurrent.BlockingQueue;
+
+/**
+ * The ClientHandler class represents a thread that handles individual client connections to the HTTP server.
+ * <p>
+ * It processes HTTP requests, serves files from the server's root directory, and logs all requests
+ * to a centralized logging system.
+ * The class implements proper file access control, error handling,
+ * and concurrent request management.
+ */
 
 public class ClientHandler implements Runnable {
 
@@ -16,6 +24,15 @@ public class ClientHandler implements Runnable {
     private final FileAccessController fileAccessController;
     private final BlockingQueue<LogEntry> logQueue;
 
+    /**
+     * Constructs a new ClientHandler with the specified client connection and dependencies.
+     *
+     * @param client the Socket representing the client connection
+     * @param config the ServerConfig containing server configuration parameters
+     * @param fileAccessController the FileAccessController for thread-safe file operations
+     * @param logQueue the BlockingQueue for asynchronous log processing
+     */
+
     public ClientHandler(Socket client, ServerConfig config, FileAccessController fileAccessController, BlockingQueue<LogEntry> logQueue ) {
 
         this.client = client;
@@ -23,6 +40,14 @@ public class ClientHandler implements Runnable {
         this.fileAccessController = fileAccessController;
         this.logQueue = logQueue;
     }
+
+    /**
+     * The main execution method for handling client requests.
+     * <p>
+     * This method reads the HTTP request, processes it, serves the appropriate file (or error page),
+     * and logs the transaction. It implements proper resource management by ensuring all streams
+     * and sockets are closed after processing.
+     */
 
     @Override
     public void run() {
@@ -52,10 +77,6 @@ public class ClientHandler implements Runnable {
                 route = "/" + config.getConfig("server.default.page") + "." + config.getConfig("server.default.page.extension");
             }
 
-            //Serve the request file
-            //String filePath = config.getConfig("server.root") + route;
-            //File file = new File(filePath);
-
             byte[] content;
             int httpStatus;
 
@@ -75,16 +96,13 @@ public class ClientHandler implements Runnable {
 
             clientOutput.write(("HTTP/1.1 " + (httpStatus == 200 ? "200 OK" : "404 Not Found") + "\r\n").getBytes());
 
-            //Send HTTP response headers
             clientOutput.write("Content-Type: text/html\r\n".getBytes());;
             clientOutput.write("\r\n".getBytes());
 
-            // Send response body
             clientOutput.write(content);
             clientOutput.write("\r\n\r\n".getBytes());
             clientOutput.flush();
 
-            //Create log entry
             LogEntry logEntry = new LogEntry(
                     LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss.SSS")),
                     "GET",
@@ -94,7 +112,6 @@ public class ClientHandler implements Runnable {
             );
 
             logQueue.put(logEntry);
-
 
         } catch (IOException | InterruptedException e) {
             System.err.println("Error handling client request.");
