@@ -4,6 +4,7 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Semaphore;
 
 /**
  * A simple HTTP server that listens on a specified port.
@@ -15,12 +16,14 @@ public class MainHTTPServerThread extends Thread {
     private final ThreadPool threadPool;
     private final FileAccessController fileAccessController;
     private BlockingQueue<LogEntry> logQueue;
+    private final Semaphore requestLimiter;
 
     public MainHTTPServerThread(ServerConfig config, ThreadPool threadPool, FileAccessController fileAccessController, BlockingQueue<LogEntry> logQueue) {
         this.config = config;
         this.threadPool = threadPool;
         this.fileAccessController = fileAccessController;
         this.logQueue = logQueue;
+        this.requestLimiter = new Semaphore(config.getIntConfig("server.max.total.requests"), true);
     }
 
     /**
@@ -29,7 +32,7 @@ public class MainHTTPServerThread extends Thread {
      * @param port The port number on which the server will listen.
 
     public MainHTTPServerThread(int port) {
-        this.port = port;
+    this.port = port;
     }
      */
 
@@ -79,19 +82,38 @@ public class MainHTTPServerThread extends Thread {
 
         try {
             ServerSocket server = new ServerSocket(config.getIntConfig("server.port"));
-            System.out.println("Server started on port: " + config.getIntConfig("server.port"));
-            System.out.println("Server Root: " + config.getConfig("server.root"));
-            System.out.println("Document Root: " + config.getConfig("server.document.root"));
+            System.out.println("[SERVER] Server started successfully on port: " + config.getIntConfig("server.port"));
+            System.out.println("[SERVER] Server Root: " + config.getConfig("server.root"));
+            System.out.println("[SERVER] Document Root: " + config.getConfig("server.document.root"));
+            System.out.println("[SEMAPHORE] Initial permits: " + requestLimiter.availablePermits());
 
-            while (true) {
-                Socket client = server.accept();
-                System.out.println("New client connected: " + client);
-                threadPool.execute(new ClientHandler(client, config, fileAccessController, logQueue));
+            while (!Thread.currentThread().isInterrupted()) {
+                try {
+                    requestLimiter.acquire();
+                    Socket client = server.accept();
+                    System.out.println("New client connected: " + client);
+
+                    threadPool.execute(() -> {
+                        try {
+                            new ClientHandler(client, config, fileAccessController, logQueue).run();
+                        } finally {
+                            requestLimiter.release();
+                            System.out.println("Request processed. Available permits: " +
+                                    requestLimiter.availablePermits());
+                        }
+                    });
+
+                } catch (IOException e) {
+                    requestLimiter.release();
+                    System.err.println("Error accepting client connection: " + e.getMessage());
+                }
             }
-
         } catch (IOException e) {
-            System.err.println("Server error: Unable to start on port " + config.getIntConfig("server.port"));
+            System.err.println("Server error: Unable to start on port " +
+                    config.getIntConfig("server.port"));
             e.printStackTrace();
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
         } finally {
             threadPool.shutdown();
         }
