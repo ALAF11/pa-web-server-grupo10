@@ -20,10 +20,15 @@ public class FileAccessController {
         Path rootPath = Paths.get(config.getConfig("server.root")).toAbsolutePath().normalize();
 
         if (route == null || route.isEmpty()) {
-            route = "/";
+            route = "/" + config.getConfig("server.default.page") +
+                    "." + config.getConfig("server.default.page.extension");
         }
 
-        Path requestedPath = route.equals("/") ? Paths.get("") : Paths.get(route).normalize();
+        if (route.startsWith("/")) {
+            route = route.substring(1);
+        }
+
+        Path requestedPath = Paths.get(route).normalize();
         Path filePath = rootPath.resolve(requestedPath).toAbsolutePath().normalize();
 
         if (!filePath.startsWith(rootPath)) {
