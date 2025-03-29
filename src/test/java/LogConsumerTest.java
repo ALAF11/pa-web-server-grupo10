@@ -34,6 +34,7 @@ class LogConsumerTest {
     }
 
     @Test
+    @DisplayName("Should correctly write a single log entry to the log file")
     void testLogEntryIsWrittenToFile() throws InterruptedException, IOException {
         //Creates a test log entry
         LogEntry testEntry = new LogEntry(
@@ -59,6 +60,7 @@ class LogConsumerTest {
     }
 
     @Test
+    @DisplayName("Should correctly write multiple log entries in sequence to the log file")
     void testMultipleLogEntriesAreWritten() throws InterruptedException, IOException {
         //Creates several log entries
         LogEntry entry1 = new LogEntry("2024-03-28 12:00:00.000", "GET", "/", "127.0.0.1", 200);

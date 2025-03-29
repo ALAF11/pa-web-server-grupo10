@@ -1,3 +1,4 @@
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -5,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 public class LogEntryTest {
 
     @Test
+    @DisplayName("Test JSON serialization of LogEntry with complete data")
     public void testToJSONFormat(){
         LogEntry entry = new LogEntry(
                 "2025-03-27 14:30:00.123",

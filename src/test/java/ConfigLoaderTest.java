@@ -1,3 +1,4 @@
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -10,6 +11,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 public class ConfigLoaderTest{
 
     @Test
+    @DisplayName("Should load configuration properties correctly from a valid config file")
     public void testLoadConfig() throws IOException{
         //Create a temporary configuration file for testing
         String testConfigContent =
@@ -37,6 +39,7 @@ public class ConfigLoaderTest{
     }
 
     @Test
+    @DisplayName("Should throw IOException when loading from non-existent config file")
     public void testLoadConfigWithNonExistentFile(){
         //Test with a file that doesn't exist
         assertThrows(IOException.class, () -> {
