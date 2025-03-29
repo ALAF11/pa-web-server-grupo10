@@ -28,9 +28,9 @@ public class Main {
 
         } catch (IOException e) {
             System.err.println("Error loading the configuration file: " + e.getMessage());
-            e.printStackTrace();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            Thread.currentThread().interrupt();
+            System.err.println("Server was interrupted");
         }
     }
 }
