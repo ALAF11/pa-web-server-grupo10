@@ -13,6 +13,8 @@ public class ConfigLoader {
             for (String key : properties.stringPropertyNames()) {
                 config.setConfig(key, properties.getProperty(key));
             }
+        } catch (IOException e) {
+            throw new IOException("Failed to load configuration from: " + configFilePath, e);
         }
 
         return config;
