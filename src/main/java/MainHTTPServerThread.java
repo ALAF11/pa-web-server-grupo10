@@ -4,6 +4,7 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Semaphore;
 
 /**
  * A simple HTTP server that listens on a specified port.
@@ -15,12 +16,14 @@ public class MainHTTPServerThread extends Thread {
     private final ThreadPool threadPool;
     private final FileAccessController fileAccessController;
     private BlockingQueue<LogEntry> logQueue;
+    private final Semaphore requestLimiter;
 
     public MainHTTPServerThread(ServerConfig config, ThreadPool threadPool, FileAccessController fileAccessController, BlockingQueue<LogEntry> logQueue) {
         this.config = config;
         this.threadPool = threadPool;
         this.fileAccessController = fileAccessController;
         this.logQueue = logQueue;
+        this.requestLimiter = new Semaphore(config.getIntConfig("server.max.total.requests"), true);
     }
 
     /**
@@ -29,7 +32,7 @@ public class MainHTTPServerThread extends Thread {
      * @param port The port number on which the server will listen.
 
     public MainHTTPServerThread(int port) {
-        this.port = port;
+    this.port = port;
     }
      */
 
@@ -85,15 +88,21 @@ public class MainHTTPServerThread extends Thread {
 
             while (true) {
                 Socket client = server.accept();
-                System.out.println("New client connected: " + client);
-                threadPool.execute(new ClientHandler(client, config, fileAccessController, logQueue));
-            }
+                requestLimiter.acquire();
 
-        } catch (IOException e) {
-            System.err.println("Server error: Unable to start on port " + config.getIntConfig("server.port"));
-            e.printStackTrace();
+                threadPool.execute(() -> {
+                    try {
+                        new ClientHandler(client, config, fileAccessController, logQueue).run();
+                    } finally {
+                        requestLimiter.release();
+                    }
+                });
+            }
+        } catch (IOException | InterruptedException e) {
+            Thread.currentThread().interrupt();
         } finally {
             threadPool.shutdown();
         }
     }
 }
+
