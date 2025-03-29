@@ -82,40 +82,27 @@ public class MainHTTPServerThread extends Thread {
 
         try {
             ServerSocket server = new ServerSocket(config.getIntConfig("server.port"));
-            System.out.println("[SERVER] Server started successfully on port: " + config.getIntConfig("server.port"));
-            System.out.println("[SERVER] Server Root: " + config.getConfig("server.root"));
-            System.out.println("[SERVER] Document Root: " + config.getConfig("server.document.root"));
-            System.out.println("[SEMAPHORE] Initial permits: " + requestLimiter.availablePermits());
+            System.out.println("Server started on port: " + config.getIntConfig("server.port"));
+            System.out.println("Server Root: " + config.getConfig("server.root"));
+            System.out.println("Document Root: " + config.getConfig("server.document.root"));
 
-            while (!Thread.currentThread().isInterrupted()) {
-                try {
-                    requestLimiter.acquire();
-                    Socket client = server.accept();
-                    System.out.println("New client connected: " + client);
+            while (true) {
+                Socket client = server.accept();
+                requestLimiter.acquire();
 
-                    threadPool.execute(() -> {
-                        try {
-                            new ClientHandler(client, config, fileAccessController, logQueue).run();
-                        } finally {
-                            requestLimiter.release();
-                            System.out.println("Request processed. Available permits: " +
-                                    requestLimiter.availablePermits());
-                        }
-                    });
-
-                } catch (IOException e) {
-                    requestLimiter.release();
-                    System.err.println("Error accepting client connection: " + e.getMessage());
-                }
+                threadPool.execute(() -> {
+                    try {
+                        new ClientHandler(client, config, fileAccessController, logQueue).run();
+                    } finally {
+                        requestLimiter.release();
+                    }
+                });
             }
-        } catch (IOException e) {
-            System.err.println("Server error: Unable to start on port " +
-                    config.getIntConfig("server.port"));
-            e.printStackTrace();
-        } catch (InterruptedException e) {
+        } catch (IOException | InterruptedException e) {
             Thread.currentThread().interrupt();
         } finally {
             threadPool.shutdown();
         }
     }
 }
+
