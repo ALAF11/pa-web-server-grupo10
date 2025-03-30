@@ -31,7 +31,6 @@ public class ClientHandler implements Runnable {
      * @param config the ServerConfig containing server configuration parameters
      * @param fileAccessController the FileAccessController for thread-safe file operations
      * @param logQueue the BlockingQueue for asynchronous log processing
-     * @throws IllegalArgumentException if any parameter is <code>null</code>
      */
 
     public ClientHandler(Socket client, ServerConfig config, FileAccessController fileAccessController, BlockingQueue<LogEntry> logQueue ) {
@@ -48,9 +47,6 @@ public class ClientHandler implements Runnable {
      * This method reads the HTTP request, processes it, serves the appropriate file (or error page),
      * and logs the transaction. It implements proper resource management by ensuring all streams
      * and sockets are closed after processing.
-     *
-     * @throws RuntimeException if an IO error occurs during request processing
-     * or if the thread is interrupted.
      */
 
     @Override
