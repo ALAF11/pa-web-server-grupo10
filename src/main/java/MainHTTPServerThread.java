@@ -49,14 +49,14 @@ public class MainHTTPServerThread extends Thread {
      * 2. Acquire a permit from the semaphore for each new request
      * 3. Delegates request processing to the thread pool
      * 4. Releases the semaphore permit when processing completes
+     * </p>
      * <p>
      * On interruption or IO error, the server shuts down by:
      * 1. Interrupting the current thread
      * 2. Shutting down the thread pool
      * 3. Closing all resources
+     * </p>
      *
-     * @throws IOException if the server socket cannot be created or fails
-     * @throws InterruptedException if the thread is interrupted during semaphore operations.
      */
 
     @Override

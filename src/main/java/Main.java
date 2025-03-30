@@ -23,9 +23,13 @@ public class Main {
      * 4. Creates thread pool with configured size
      * 5. Configures request limiter semaphore
      * 6. Starts main server thread
+     * </p>
      * <p>
      * The server runs until interrupted, handling all client
      * requests within the configured concurrency limits.
+     * </p>
+     *
+     * @param args command line arguments (currently unused)
      */
 
     public static void main(String[] args) {

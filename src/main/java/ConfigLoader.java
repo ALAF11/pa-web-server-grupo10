@@ -10,7 +10,8 @@ import java.util.Properties;
  * <p>
  * It handles the file loading and parsing operations, converting the flat properties structure
  * into a configuration object for the server
- *     
+ * </p>
+ *
  * @see ServerConfig
  * @see Properties
  */
