@@ -28,6 +28,7 @@ class ThreadPoolTest {
         AtomicInteger running = new AtomicInteger(0);
         CountDownLatch allDone = new CountDownLatch(poolSize);
 
+        // Submit tasks equal to the pool size
         for (int i = 0; i < poolSize; i++) {
             pool.execute(() -> {
                running.incrementAndGet();
@@ -37,6 +38,7 @@ class ThreadPoolTest {
             });
         }
 
+        // Verify the tasks completion
         assertTrue(allDone.await(1, TimeUnit.SECONDS));
         assertEquals(0, running.get());
     }
@@ -49,16 +51,19 @@ class ThreadPoolTest {
         CountDownLatch secondDone = new CountDownLatch(1);
         AtomicInteger secondStarted = new AtomicInteger(0);
 
+        // First task
         pool.execute(() -> {
             try { Thread.sleep(100); } catch (InterruptedException e) {}
             firstDone.countDown();
         });
 
+        // Second task
         pool.execute(() -> {
             secondStarted.set(1);
             secondDone.countDown();
         });
 
+        // Verifications for the tasks execution
         assertEquals(0, secondStarted.get(), "Second task should still be queued");
         assertTrue(firstDone.await(1, TimeUnit.SECONDS), "First task should complete");
         assertTrue(secondDone.await(1, TimeUnit.SECONDS), "Second task should execute after first");
