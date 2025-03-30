@@ -1,6 +1,8 @@
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
 import java.net.ServerSocket;
+import java.net.Socket;
 import java.util.concurrent.*;
 import java.io.IOException;
 
@@ -8,6 +10,22 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class MainHTTPServerThreadTest {
+
+    private static final int TEST_PORT = findAvailablePort();
+    private MainHTTPServerThread serverThread;
+
+    @AfterEach
+    void tearDown() {
+        //Check if server thread exists and is running
+        if (serverThread != null && serverThread.isAlive()) {
+            serverThread.interrupt();
+            try {
+                serverThread.join(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
 
     @Test
     @DisplayName("Should correctly manage concurrent requests with semaphore and thread pool")
@@ -76,33 +94,44 @@ public class MainHTTPServerThreadTest {
 
     @Test
     @DisplayName("Should initialize server with valid configuration")
-    public void testServerInitialization() throws IOException, InterruptedException {
-        //Setup test configuration
+    void testServerInitialization() throws IOException, InterruptedException {
+        // Setup test configuration with dynamic port
         ServerConfig config = new ServerConfig();
-        config.setConfig("server.port", "8080");
+        config.setConfig("server.port", String.valueOf(TEST_PORT));
         config.setConfig("server.max.total.requests", "5");
         config.setConfig("server.root", "./html");
         config.setConfig("server.document.root", "./html");
         config.setConfig("server.default.page", "index");
         config.setConfig("server.default.page.extension", "html");
 
-        //Create dependencies
+        // Create dependencies
         ThreadPool threadPool = new ThreadPool(2, 2);
         BlockingQueue<LogEntry> logQueue = new LinkedBlockingQueue<>();
         FileAccessController fileAccessController = new FileAccessController(config);
         Semaphore requestLimiter = new Semaphore(20);
 
         // Create and start server thread
-        MainHTTPServerThread server = new MainHTTPServerThread(
-                config, threadPool, fileAccessController, logQueue, requestLimiter
-        );
+        serverThread = new MainHTTPServerThread(config, threadPool, fileAccessController, logQueue, requestLimiter);
+        serverThread.start();
 
-        // Verify server starts successfully
-        server.start();
+        // Wait for server to start
         Thread.sleep(500);
-        assertTrue(server.isAlive());
 
-        server.interrupt();
+        // Verify server is running by attempting to connect
+        try (Socket clientSocket = new Socket("localhost", TEST_PORT)) {
+            assertTrue(clientSocket.isConnected(), "Server should accept connections");
+        }
+
+        assertTrue(serverThread.isAlive(), "Server thread should be running");
+    }
+
+    //Helper method to find an available port
+    private static int findAvailablePort() {
+        try (ServerSocket socket = new ServerSocket(0)) {
+            return socket.getLocalPort();
+        } catch (IOException e) {
+            throw new RuntimeException("Could not find available port", e);
+        }
     }
 
 }
