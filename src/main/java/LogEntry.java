@@ -1,9 +1,11 @@
 /**
- * The LogEntry class represents a single log entry for HTTP requests.
+ * The LogEntry class represents a single log entry for HTTP requests in JSON format.
  * <p>
- *     This immutable class stores information about HTTP requests including
- *     Timestamp, method, route, origin, and status code, and provides
- *     functionality to convert the entry to JSON format.
+ * This immutable class stores information about HTTP requests including
+ * timestamp, method, route, client origin, and status code.
+ * The class provides conversion to JSON format for logging purposes.
+ * <p>
+ * Instances of this class are thread-safe as they are immutable after construction.
  */
 
 public class LogEntry {
@@ -15,12 +17,13 @@ public class LogEntry {
 
     /**
      * Constructs a new LogEntry with all required fields.
-     *
-     * @param timestamp the time when the request was received
-     * @param method the HTTP method used (get, post, etc.)
-     * @param route the requested route/path
-     * @param origin the IP adress of the client
-     * @param httpStatus the HTTP status code returned
+     * <p>
+     * @param timestamp the exact time when the request was received in format
+     *                  "YYYY-MM-DD HH:MM:SS.SSS"
+     * @param method the HTTP method used in the request (GET, POST, etc.)
+     * @param route the requested route/path.
+     * @param origin the IP address of the client
+     * @param httpStatus the HTTP status code returned to the client.
      */
 
     public LogEntry(String timestamp, String method, String route, String origin, int httpStatus){
@@ -34,7 +37,7 @@ public class LogEntry {
     /**
      * Converts the log entry to JSON format.
      *
-     * @return a JSON string representation of the log entry
+     * @return a JSON string representation of the log entry.
      */
 
     public String toJSON(){

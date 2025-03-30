@@ -2,10 +2,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * The ServerConfig class manager configuration settings for the HTTP server.
+ * The ServerConfig class manages configuration settings for the HTTP server.
  * <p>
- *      This class provides a centralized way to store and retrieved configuration
- *      parameters using key-value pairs. It supports both string and integer values.
+ * This class provides a centralized way to store and retrieved configuration
+ * parameters using key-value pairs. It supports both string and integer values.
  */
 
 public class ServerConfig {
