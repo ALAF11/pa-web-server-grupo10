@@ -64,30 +64,30 @@ public class MainHTTPServerThreadTest {
         threadPool.shutdown();
     }
 
-//    @Test
-//    public void testServerInitialization() throws IOException, InterruptedException {
-//        ServerConfig config = new ServerConfig();
-//        // Configurações OBRIGATÓRIAS para o MainHTTPServerThread
-//        config.setConfig("server.port", "8080");
-//        config.setConfig("server.max.total.requests", "5"); // Adicione esta linha
-//        config.setConfig("server.root", "./html");
-//        config.setConfig("server.document.root", "./html");
-//        config.setConfig("server.default.page", "index");
-//        config.setConfig("server.default.page.extension", "html");
-//
-//        ThreadPool threadPool = new ThreadPool(2, 2);
-//        BlockingQueue<LogEntry> logQueue = new LinkedBlockingQueue<>();
-//        FileAccessController fac = new FileAccessController(config);
-//
-//        MainHTTPServerThread server = new MainHTTPServerThread(
-//                config, threadPool, fac, logQueue
-//        );
-//
-//        server.start();
-//        Thread.sleep(500); // Tempo para inicialização
-//        assertTrue(server.isAlive());
-//        server.interrupt();
-//
-//    }
+    @Test
+    public void testServerInitialization() throws IOException, InterruptedException {
+        ServerConfig config = new ServerConfig();
+        // Configurações OBRIGATÓRIAS para o MainHTTPServerThread
+        config.setConfig("server.port", "8080");
+        config.setConfig("server.max.total.requests", "5"); // Adicione esta linha
+        config.setConfig("server.root", "./html");
+        config.setConfig("server.document.root", "./html");
+        config.setConfig("server.default.page", "index");
+        config.setConfig("server.default.page.extension", "html");
+
+        ThreadPool threadPool = new ThreadPool(2, 2);
+        BlockingQueue<LogEntry> logQueue = new LinkedBlockingQueue<>();
+        FileAccessController fileAccessController = new FileAccessController(config);
+        Semaphore requestLimiter = new Semaphore(20);
+
+        MainHTTPServerThread server = new MainHTTPServerThread(
+                config, threadPool, fileAccessController, logQueue, requestLimiter
+        );
+
+        server.start();
+        Thread.sleep(500); // Tempo para inicialização
+        assertTrue(server.isAlive());
+        server.interrupt();
+    }
 
 }
