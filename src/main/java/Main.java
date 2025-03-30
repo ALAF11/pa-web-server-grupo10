@@ -26,6 +26,10 @@ public class Main {
      * <p>
      * The server runs until interrupted, handling all client
      * requests within the configured concurrency limits.
+     *
+     * @param args command line arguments (currently unused)
+     * @throws IOException if the configuration file cannot be loaded or is invalid.
+     * @throws InterruptedException if the server thread is interrupted during execution
      */
 
     public static void main(String[] args) {
