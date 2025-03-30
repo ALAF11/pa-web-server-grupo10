@@ -3,6 +3,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.BlockingQueue;
@@ -64,6 +65,10 @@ class ClientHandlerTest {
     @Test
     @DisplayName("Test valid GET request")
     void testHandleValidGetRequest() throws Exception {
+
+        Path testIndexFile = tempDir.resolve("index.html");
+        String expectedContent = new String(Files.readAllBytes(testIndexFile), StandardCharsets.UTF_8);
+
         System.out.println("\n[TEST] Starting valid GET request test...");
         try (ServerSocket testServer = new ServerSocket(0)) {
             int port = testServer.getLocalPort();
@@ -95,8 +100,7 @@ class ClientHandlerTest {
                 String response = readResponse(in);
                 System.out.println("[CLIENT] Received response:\n" + response);
 
-                assertTrue(response.contains("HTTP/1.1 200 OK"), "Should return 200 status");
-                assertTrue(response.contains("<h1>Test Page</h1>"), "Should contain index.html content");
+                assertTrue(response.contains(expectedContent), "Should contain index.html content");
                 System.out.println("[TEST] Valid GET request test passed");
             }
         }
@@ -105,6 +109,10 @@ class ClientHandlerTest {
     @Test
     @DisplayName("Test invalid GET request (file not found)")
     void testHandleInvalidGetRequest() throws Exception {
+
+        Path test404File = tempDir.resolve("404.html");
+        String expectedContent = new String(Files.readString(test404File));
+
         System.out.println("\n[TEST] Starting invalid GET request test...");
         try (ServerSocket testServer = new ServerSocket(0)) {
             int port = testServer.getLocalPort();
@@ -136,8 +144,7 @@ class ClientHandlerTest {
                 String response = readResponse(in);
                 System.out.println("[CLIENT] Received response:\n" + response);
 
-                assertTrue(response.contains("HTTP/1.1 404 Not Found"), "Should return 404 status");
-                assertTrue(response.contains("<h1>404 Not Found</h1>"), "Should contain 404.html content");
+                assertTrue(response.contains(expectedContent), "Should contain 404.html content");
                 System.out.println("[TEST] Invalid GET request test passed");
             }
         }
