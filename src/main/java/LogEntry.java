@@ -4,8 +4,10 @@
  * This immutable class stores information about HTTP requests including
  * timestamp, method, route, client origin, and status code.
  * The class provides conversion to JSON format for logging purposes.
+ * </p>
  * <p>
  * Instances of this class are thread-safe as they are immutable after construction.
+ * </p>
  */
 
 public class LogEntry {
