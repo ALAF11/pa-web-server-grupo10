@@ -7,10 +7,8 @@ import java.util.Properties;
  * <p>
  * This utility class reads a configuration file in Java Properties format and creates
  * a {@link ServerConfig} object populated with the configuration values.
- * <p>
  * It handles the file loading and parsing operations, converting the flat properties structure
  * into a configuration object for the server
- * </p>
  *
  * @see ServerConfig
  * @see Properties
