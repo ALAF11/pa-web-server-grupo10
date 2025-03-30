@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LogEntry.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pa-web-server</a> &gt; <a href="index.source.html" class="el_package">default</a> &gt; <span class="el_source">LogEntry.java</span></div><h1>LogEntry.java</h1><pre class="source lang-java linenums">/**
+ * The LogEntry class represents a single log entry for HTTP requests in JSON format.
+ * &lt;p&gt;
+ * This immutable class stores information about HTTP requests including
+ * timestamp, method, route, client origin, and status code.
+ * The class provides conversion to JSON format for logging purposes.
+ * &lt;p&gt;
+ * Instances of this class are thread-safe as they are immutable after construction.
+ */
+
+public class LogEntry {
+    private final String timestamp;
+    private final String method;
+    private final String route;
+    private final String origin;
+    private final int httpStatus;
+
+    /**
+     * Constructs a new LogEntry with all required fields.
+     * &lt;p&gt;
+     * @param timestamp the exact time when the request was received in format
+     *                  &quot;YYYY-MM-DD HH:MM:SS.SSS&quot;
+     * @param method the HTTP method used in the request (GET, POST, etc.)
+     * @param route the requested route/path.
+     * @param origin the IP address of the client
+     * @param httpStatus the HTTP status code returned to the client.
+     */
+
+<span class="fc" id="L29">    public LogEntry(String timestamp, String method, String route, String origin, int httpStatus){</span>
+<span class="fc" id="L30">        this.timestamp = timestamp;</span>
+<span class="fc" id="L31">        this.method = method;</span>
+<span class="fc" id="L32">        this.route = route;</span>
+<span class="fc" id="L33">        this.origin = origin;</span>
+<span class="fc" id="L34">        this.httpStatus = httpStatus;</span>
+<span class="fc" id="L35">    }</span>
+
+    /**
+     * Converts the log entry to JSON format.
+     *
+     * @return a JSON string representation of the log entry.
+     */
+
+    public String toJSON(){
+<span class="fc" id="L44">        return String.format(</span>
+                &quot;{\n&quot;+
+                        &quot;\&quot;timestamp\&quot;: \&quot;%s\&quot;,\n&quot; +
+                        &quot;\&quot;method\&quot;: \&quot;%s\&quot;, \n&quot; +
+                        &quot;\&quot;route\&quot;: \&quot;%s\&quot;, \n&quot; +
+                        &quot;\&quot;origin\&quot;: \&quot;%s\&quot;, \n&quot; +
+                        &quot;\&quot;httpStatus\&quot;: %d\n&quot; +
+<span class="fc" id="L51">                &quot;}&quot;, timestamp, method, route, origin, httpStatus</span>
+
+        );
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

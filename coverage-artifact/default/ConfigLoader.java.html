@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ConfigLoader.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pa-web-server</a> &gt; <a href="index.source.html" class="el_package">default</a> &gt; <span class="el_source">ConfigLoader.java</span></div><h1>ConfigLoader.java</h1><pre class="source lang-java linenums">import java.io.FileInputStream;
+import java.io.IOException;
+import java.util.Properties;
+
+/**
+ * The ConfigLoader class provides functionality to load server configuration from a properties file.
+ * &lt;p&gt;
+ * This utility class reads a configuration file in Java Properties format and creates
+ * a {@link ServerConfig} object populated with the configuration values.
+ * It handles the file loading and parsing operations, converting the flat properties structure
+ * into a configuration object for the server
+ *
+ * @see ServerConfig
+ * @see Properties
+ */
+
+<span class="nc" id="L17">public class ConfigLoader {</span>
+
+    /**
+     * Loads server configuration from the specified file path.
+     * &lt;p&gt;
+     * The method opens the configuration file, parses the properties format,
+     * creates and populates a ServerConfig object, and ensures proper resource clean up.
+     * &lt;p&gt;
+     * @param configFilePath the absolute or relative path to the configuration file
+     * @return a fully populated ServerConfig object
+     * @throws IOException if the configuration file cannot be found or there are
+     * permission issues reading the file or the file format is invalid or any
+     * other I/O error occurs during reading
+     * 
+     * @see ServerConfig#setConfig(String, String)
+     */
+    
+    public static ServerConfig loadConfig(String configFilePath) throws IOException {
+<span class="fc" id="L35">        ServerConfig config = new ServerConfig();</span>
+<span class="fc" id="L36">        Properties properties = new Properties();</span>
+
+<span class="fc" id="L38">        try (FileInputStream file = new FileInputStream(configFilePath)) {</span>
+<span class="fc" id="L39">            properties.load(file);</span>
+
+<span class="fc bfc" id="L41" title="All 2 branches covered.">            for (String key : properties.stringPropertyNames()) {</span>
+<span class="fc" id="L42">                config.setConfig(key, properties.getProperty(key));</span>
+<span class="fc" id="L43">            }</span>
+<span class="fc" id="L44">        } catch (IOException e) {</span>
+<span class="fc" id="L45">            throw new IOException(&quot;Failed to load configuration from: &quot; + configFilePath, e);</span>
+<span class="fc" id="L46">        }</span>
+
+<span class="fc" id="L48">        return config;</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

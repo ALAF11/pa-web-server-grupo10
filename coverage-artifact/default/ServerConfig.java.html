@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ServerConfig.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pa-web-server</a> &gt; <a href="index.source.html" class="el_package">default</a> &gt; <span class="el_source">ServerConfig.java</span></div><h1>ServerConfig.java</h1><pre class="source lang-java linenums">import java.util.HashMap;
+import java.util.Map;
+
+/**
+ * The ServerConfig class manages configuration settings for the HTTP server.
+ * &lt;p&gt;
+ * This class provides a centralized way to store and retrieved configuration
+ * parameters using key-value pairs. It supports both string and integer values.
+ */
+
+public class ServerConfig {
+
+    private final Map&lt;String, String&gt; configMap;
+
+    /**
+     * Constructs a new empty ServerConfig object.
+     */
+
+<span class="fc" id="L19">    public ServerConfig() {</span>
+<span class="fc" id="L20">        this.configMap = new HashMap&lt;&gt;();</span>
+<span class="fc" id="L21">    }</span>
+
+    /**
+     * Sets a configuration value.
+     *
+     * @param key the configuration key.
+     * @param value the configuration value.
+     */
+
+    public void setConfig(String key, String value) {
+<span class="fc" id="L31">        configMap.put(key, value);</span>
+<span class="fc" id="L32">    }</span>
+
+    /**
+     * Retrieves a string configuration value.
+     *
+     * @param key the configuration key to retrieve
+     * @return the configuration value, or null if not found
+     */
+
+    public String getConfig(String key) {
+<span class="fc" id="L42">        return configMap.get(key);</span>
+    }
+
+    /**
+     * Retrieves an integer configuration value.
+     *
+     * @param key the configuration key to retrieve
+     * @return the configuration value as an integer
+     * @throws NumberFormatException If the value cannot be parsed as an integer
+     */
+
+    public int getIntConfig(String key) {
+<span class="fc" id="L54">        return Integer.parseInt(configMap.get(key));</span>
+    }
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ThreadPool.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pa-web-server</a> &gt; <a href="index.source.html" class="el_package">default</a> &gt; <span class="el_source">ThreadPool.java</span></div><h1>ThreadPool.java</h1><pre class="source lang-java linenums">import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
+/**
+ * The threadPool class extends ThreadPoolExecutor to provide custom thread pool functionality.
+ * &lt;p&gt;
+ * This thread pool provides detailed logging of task lifecycle events including:
+ * task start, completion and pool termination. It maintains a fixed-size pool
+ * with an unbounded task queue.
+ *
+ * @see ThreadPoolExecutor
+ */
+
+public class ThreadPool extends ThreadPoolExecutor {
+
+    /**
+     * Constructs a new ThreadPool with fixed size configuration.
+     * &lt;p&gt;
+     * Creates a thread pool where both core and maximum pool sizes are equal. Uses
+     * an unbounded queue and 1-minute keep-alive time for thread termination policy.
+     *
+     * @param corePoolSize the number of threads to keep in the pool
+     * @param maximumPoolSize the maximum number of threads in the pool
+     */
+
+    public ThreadPool(int corePoolSize, int maximumPoolSize) {
+<span class="fc" id="L28">        super (corePoolSize, maximumPoolSize, 1, TimeUnit.MINUTES, new LinkedBlockingQueue&lt;&gt;());</span>
+<span class="fc" id="L29">    }</span>
+
+    /**
+     * Logs task execution start.
+     * &lt;p&gt;
+     * Called immediately before executing the given task in the specified thread.
+     *
+     * @param thread the thread that will run the task
+     * @param runnable the task that will be executed
+     */
+
+    @Override
+    protected void beforeExecute(Thread thread, Runnable runnable) {
+<span class="fc" id="L42">        super.beforeExecute(thread, runnable);</span>
+<span class="fc" id="L43">        System.out.println(&quot;Executing task: &quot; + runnable);</span>
+<span class="fc" id="L44">    }</span>
+
+    /**
+     * Logs task completion.
+     * &lt;p&gt;
+     * Called after the given task has completed execution.
+     *
+     * @param runnable the task that was executed
+     * @param throwable any exception that occurred, or null if none
+     */
+
+    protected void afterExecute(Runnable runnable, Throwable throwable) {
+<span class="fc" id="L56">        super.afterExecute(runnable, throwable);</span>
+<span class="fc" id="L57">        System.out.println(&quot;Task completed: &quot; + runnable);</span>
+<span class="fc" id="L58">    }</span>
+
+    /**
+     * Logs thread pool termination
+     * &lt;p&gt;
+     * Called when the executor has terminated all threads and is being shut down.
+     */
+
+    protected void terminated() {
+<span class="fc" id="L67">        super.terminated();</span>
+<span class="fc" id="L68">        System.out.println(&quot;Thread pool terminated.&quot;);</span>
+<span class="fc" id="L69">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

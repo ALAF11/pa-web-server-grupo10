@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>Main.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pa-web-server</a> &gt; <a href="index.source.html" class="el_package">default</a> &gt; <span class="el_source">Main.java</span></div><h1>Main.java</h1><pre class="source lang-java linenums">import java.io.IOException;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Semaphore;
+
+/**
+ * The Main class is the entry point for the HTTP server application.
+ * &lt;p&gt;
+ * This class initializes all server component including configuration loading,
+ * thread pool setup, access controller, logging system and the main
+ * server thread. It establishes the foundation for the server´s operation.
+ */
+
+<span class="nc" id="L14">public class Main {</span>
+
+    /**
+     * The main method that starts the HTTP server.
+     * &lt;p&gt;
+     * The method performs the following initialization sequence:
+     * 1. Loads server configuration from server.config file
+     * 2. Sets up asynchronous logging system
+     * 3. Initializes file access controller
+     * 4. Creates thread pool with configured size
+     * 5. Configures request limiter semaphore
+     * 6. Starts main server thread
+     * &lt;/p&gt;
+     * &lt;p&gt;
+     * The server runs until interrupted, handling all client
+     * requests within the configured concurrency limits.
+     * &lt;/p&gt;
+     *
+     * @param args command line arguments (currently unused)
+     */
+
+    public static void main(String[] args) {
+        try {
+<span class="fc" id="L37">            String configFilePath = System.getProperty(&quot;user.dir&quot;) + &quot;/server.config&quot;;</span>
+<span class="fc" id="L38">            ServerConfig config = ConfigLoader.loadConfig(configFilePath);</span>
+
+<span class="fc" id="L40">            BlockingQueue&lt;LogEntry&gt; logQueue = new LinkedBlockingQueue&lt;&gt;();</span>
+
+<span class="fc" id="L42">            Thread logConsumerThread = new Thread(new LogConsumer(logQueue, config.getConfig(&quot;server.log.file&quot;)));</span>
+<span class="fc" id="L43">            logConsumerThread.start();</span>
+
+<span class="fc" id="L45">            FileAccessController fileAccessController = new FileAccessController(config);</span>
+
+<span class="fc" id="L47">            ThreadPool threadPool = new ThreadPool(config.getIntConfig(&quot;server.maximum.requests&quot;), config.getIntConfig(&quot;server.maximum.requests&quot;));</span>
+
+<span class="fc" id="L49">            Semaphore requestLimiter = new Semaphore(config.getIntConfig(&quot;server.max.total.requests&quot;), true);</span>
+
+<span class="fc" id="L51">            MainHTTPServerThread serverThread = new MainHTTPServerThread(config, threadPool, fileAccessController, logQueue, requestLimiter);</span>
+
+<span class="fc" id="L53">            serverThread.start();</span>
+<span class="nc" id="L54">            serverThread.join();</span>
+
+<span class="fc" id="L56">        } catch (IOException e) {</span>
+<span class="fc" id="L57">            System.err.println(&quot;Error loading the configuration file: &quot; + e.getMessage());</span>
+<span class="fc" id="L58">        } catch (InterruptedException e) {</span>
+<span class="fc" id="L59">            Thread.currentThread().interrupt();</span>
+<span class="fc" id="L60">            System.err.println(&quot;Server was interrupted&quot;);</span>
+<span class="pc" id="L61">        }</span>
+<span class="fc" id="L62">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

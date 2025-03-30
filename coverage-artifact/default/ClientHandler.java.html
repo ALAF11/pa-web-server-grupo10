@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>ClientHandler.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pa-web-server</a> &gt; <a href="index.source.html" class="el_package">default</a> &gt; <span class="el_source">ClientHandler.java</span></div><h1>ClientHandler.java</h1><pre class="source lang-java linenums">import java.io.*;
+import java.net.Socket;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.concurrent.BlockingQueue;
+
+/**
+ * The ClientHandler class represents a thread that handles individual client connections to the HTTP server.
+ * &lt;p&gt;
+ * It processes HTTP requests, serves files from the server's root directory, and logs all requests
+ * to a centralized logging system.
+ * The class implements proper file access control, error handling,
+ * and concurrent request management via {@link BlockingQueue}.
+ */
+
+public class ClientHandler implements Runnable {
+
+    private final Socket client;
+    private final ServerConfig config;
+    private final FileAccessController fileAccessController;
+    private final BlockingQueue&lt;LogEntry&gt; logQueue;
+
+    /**
+     * Constructs a new ClientHandler with the specified client connection and dependencies.
+     *
+     * @param client the Socket representing the client connection
+     * @param config the ServerConfig containing server configuration parameters
+     * @param fileAccessController the FileAccessController for thread-safe file operations
+     * @param logQueue the BlockingQueue for asynchronous log processing
+     */
+
+<span class="fc" id="L36">    public ClientHandler(Socket client, ServerConfig config, FileAccessController fileAccessController, BlockingQueue&lt;LogEntry&gt; logQueue ) {</span>
+
+<span class="fc" id="L38">        this.client = client;</span>
+<span class="fc" id="L39">        this.config = config;</span>
+<span class="fc" id="L40">        this.fileAccessController = fileAccessController;</span>
+<span class="fc" id="L41">        this.logQueue = logQueue;</span>
+<span class="fc" id="L42">    }</span>
+
+    /**
+     * The main execution method for handling client requests.
+     * &lt;p&gt;
+     * This method reads the HTTP request, processes it, serves the appropriate file (or error page),
+     * and logs the transaction. It implements proper resource management by ensuring all streams
+     * and sockets are closed after processing.
+     */
+
+    @Override
+    public void run() {
+
+<span class="fc" id="L55">        try (BufferedReader reader = new BufferedReader(new InputStreamReader(client.getInputStream()));</span>
+
+<span class="fc" id="L57">            OutputStream clientOutput = client.getOutputStream()) {</span>
+
+<span class="fc" id="L59">            StringBuilder requestBuilder = new StringBuilder();</span>
+            String line;
+<span class="pc bpc" id="L61" title="3 of 4 branches missed.">            while ((line = reader.readLine()) != null &amp;&amp; !line.isBlank()) {</span>
+<span class="nc" id="L62">                requestBuilder.append(line).append(&quot;\r\n&quot;);</span>
+            }
+
+<span class="fc" id="L65">            String request = requestBuilder.toString();</span>
+<span class="fc" id="L66">            String[] tokens = request.split(&quot; &quot;);</span>
+<span class="pc bpc" id="L67" title="1 of 2 branches missed.">            if (tokens.length &lt; 2) {</span>
+<span class="fc" id="L68">                System.err.println(&quot;Invalid request received.&quot;);</span>
+<span class="fc" id="L69">                return;</span>
+            }
+<span class="nc" id="L71">            String route = tokens[1];</span>
+<span class="nc" id="L72">            route = URLDecoder.decode(route, StandardCharsets.UTF_8);</span>
+<span class="nc" id="L73">            System.out.println(&quot;Request received: &quot; + request);</span>
+
+<span class="nc bnc" id="L75" title="All 2 branches missed.">            if (route.equals(&quot;/&quot;)) {</span>
+<span class="nc" id="L76">                route = &quot;/&quot; + config.getConfig(&quot;server.default.page&quot;) + &quot;.&quot; + config.getConfig(&quot;server.default.page.extension&quot;);</span>
+            }
+
+            byte[] content;
+            int httpStatus;
+
+            try {
+<span class="nc" id="L83">                content = fileAccessController.readFile(route);</span>
+<span class="nc" id="L84">                httpStatus = 200;</span>
+<span class="nc" id="L85">            } catch (IOException | InterruptedException e) {</span>
+                try {
+<span class="nc" id="L87">                    content = Files.readAllBytes(Paths.get(config.getConfig(&quot;server.root&quot;) + &quot;/&quot; + config.getConfig(&quot;server.page.404&quot;)));</span>
+<span class="nc" id="L88">                } catch (IOException ex) {</span>
+<span class="nc" id="L89">                    content = &quot;&lt;html&gt;&lt;body&gt;&lt;h1&gt;404 Not Found&lt;/h1&gt;&lt;/body&gt;&lt;/html&gt;&quot;.getBytes();</span>
+
+<span class="nc" id="L91">                }</span>
+<span class="nc" id="L92">                httpStatus = 404;</span>
+<span class="nc" id="L93">            }</span>
+
+<span class="nc bnc" id="L95" title="All 2 branches missed.">            clientOutput.write((&quot;HTTP/1.1 &quot; + (httpStatus == 200 ? &quot;200 OK&quot; : &quot;404 Not Found&quot;) + &quot;\r\n&quot;).getBytes());</span>
+
+<span class="nc" id="L97">            clientOutput.write(&quot;Content-Type: text/html\r\n&quot;.getBytes());;</span>
+<span class="nc" id="L98">            clientOutput.write(&quot;\r\n&quot;.getBytes());</span>
+
+<span class="nc" id="L100">            clientOutput.write(content);</span>
+<span class="nc" id="L101">            clientOutput.write(&quot;\r\n\r\n&quot;.getBytes());</span>
+<span class="nc" id="L102">            clientOutput.flush();</span>
+
+<span class="nc" id="L104">            LogEntry logEntry = new LogEntry(</span>
+<span class="nc" id="L105">                    LocalDateTime.now().format(DateTimeFormatter.ofPattern(&quot;yyyy-MM-dd HH:mm:ss.SSS&quot;)),</span>
+                    &quot;GET&quot;,
+                    route,
+<span class="nc" id="L108">                    client.getInetAddress().toString(),</span>
+                    httpStatus
+            );
+
+<span class="nc" id="L112">            logQueue.put(logEntry);</span>
+
+<span class="pc bpc" id="L114" title="1 of 2 branches missed.">        } catch (IOException | InterruptedException e) {</span>
+<span class="nc" id="L115">            System.err.println(&quot;Error handling client request.&quot;);</span>
+<span class="nc" id="L116">            e.printStackTrace();</span>
+
+        } finally {
+            try {
+<span class="fc" id="L120">                client.close();</span>
+<span class="nc" id="L121">            } catch (IOException e) {</span>
+<span class="nc" id="L122">                e.printStackTrace();</span>
+<span class="fc" id="L123">            }</span>
+        }
+<span class="nc" id="L125">    }</span>
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

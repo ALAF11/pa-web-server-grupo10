@@ -1,0 +1,10 @@
+GROUP,PACKAGE,CLASS,INSTRUCTION_MISSED,INSTRUCTION_COVERED,BRANCH_MISSED,BRANCH_COVERED,LINE_MISSED,LINE_COVERED,COMPLEXITY_MISSED,COMPLEXITY_COVERED,METHOD_MISSED,METHOD_COVERED
+pa-web-server,default,ServerConfig,0,28,0,0,0,7,0,4,0,4
+pa-web-server,default,LogConsumer,6,42,3,1,3,16,2,2,0,2
+pa-web-server,default,ConfigLoader,3,45,0,2,1,11,1,2,1,1
+pa-web-server,default,ClientHandler,122,63,9,3,30,18,6,2,0,2
+pa-web-server,default,ThreadPool,0,36,0,0,0,11,0,4,0,4
+pa-web-server,default,FileAccessController,72,152,7,9,11,30,7,5,0,4
+pa-web-server,default,MainHTTPServerThread,7,75,0,0,4,18,0,3,0,3
+pa-web-server,default,Main,6,72,0,0,2,17,1,1,1,1
+pa-web-server,default,LogEntry,0,49,0,0,0,9,0,2,0,2

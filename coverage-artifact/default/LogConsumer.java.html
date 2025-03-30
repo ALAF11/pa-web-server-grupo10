@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>LogConsumer.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">pa-web-server</a> &gt; <a href="index.source.html" class="el_package">default</a> &gt; <span class="el_source">LogConsumer.java</span></div><h1>LogConsumer.java</h1><pre class="source lang-java linenums">import java.io.*;
+import java.util.concurrent.BlockingQueue;
+
+/**
+ * The LogConsumer class implements asynchronous file logging using a producer-consumer pattern.
+ * &lt;p&gt;
+ * This component runs in a dedicated thread, consuming LogEntry objects from
+ * a shared blocking queue and writting them sequentially to a log file
+ * in JSON format. It ensures thread-safe log writing and proper resource management.
+ * &lt;p&gt;
+ * The log file is opened in append mode, preserving existing log entries.
+ *
+ * @see BlockingQueue
+ * @see LogEntry
+ */
+
+public class LogConsumer implements Runnable {
+    private BlockingQueue&lt;LogEntry&gt; logQueue;
+    private final String logFilePath;
+
+    /**
+     * Constructs a new LogConsumer with the specified queue and output file path.
+     * &lt;p&gt;
+     * The consumer will write all log entries taken from the queue to the specified file,
+     * creating it if necessary or appending to existing content.
+     *
+     *
+     * @param logQueue the shared blocking queue containing log entries to consume.
+     * @param logFilePath the path to the log file where entries will be written.
+     */
+
+<span class="fc" id="L32">    public LogConsumer(BlockingQueue&lt;LogEntry&gt; logQueue, String logFilePath){</span>
+<span class="fc" id="L33">        this.logQueue = logQueue;</span>
+<span class="fc" id="L34">        this.logFilePath = logFilePath;</span>
+
+<span class="fc" id="L36">    }</span>
+
+    /**
+     * The main execution method that continuously consumes log entries from the queue
+     * and writes them to the log file.
+     * &lt;p&gt;
+     * This method runs in a loop until the thread is interrupted, writing each log entry
+     * to the log file in JSON format. It handles interruptions gracefully and ensures
+     * proper cleanup of resources.
+     * &lt;p&gt;
+     * On interruption, completes any pending write operations before terminating.
+     * This method guarantees proper closure of file resources even if exceptions occur.
+     *
+     * @throws RuntimeException if an unrecoverable I/O error occurs during the file writting.
+     */
+
+    @Override
+    public void run() {
+<span class="fc" id="L54">        try (BufferedWriter writer = new BufferedWriter(new FileWriter(logFilePath, true))){</span>
+<span class="pc bpc" id="L55" title="1 of 2 branches missed.">           while(!Thread.currentThread().isInterrupted()){</span>
+               try {
+<span class="fc" id="L57">                   LogEntry logEntry = logQueue.take();</span>
+
+<span class="fc" id="L59">                   writer.write(logEntry.toJSON());</span>
+<span class="fc" id="L60">                   writer.newLine();</span>
+<span class="fc" id="L61">                   writer.flush();</span>
+               }
+<span class="fc" id="L63">               catch (InterruptedException e) {</span>
+<span class="fc" id="L64">                   Thread.currentThread().interrupt();</span>
+<span class="fc" id="L65">                   break;</span>
+<span class="fc" id="L66">               }</span>
+           }
+        }
+<span class="nc" id="L69">        catch (IOException e){</span>
+<span class="nc bnc" id="L70" title="All 2 branches missed.">            if(!Thread.currentThread().isInterrupted()) {</span>
+<span class="nc" id="L71">                e.printStackTrace();</span>
+            }
+<span class="fc" id="L73">        }</span>
+<span class="fc" id="L74">    }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>
