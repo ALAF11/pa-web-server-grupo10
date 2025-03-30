@@ -1,3 +1,5 @@
+import org.junit.jupiter.api.*;
+import static org.junit.jupiter.api.Assertions.*;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -6,144 +8,154 @@ import java.nio.file.Path;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-public class ClientHandlerTest {
+class ClientHandlerTest {
 
-    public static void main(String[] args) throws Exception {
-        System.out.println("=== Iniciando teste do ClientHandler ===");
+    private static Path tempDir;
+    private ServerConfig config;
+    private FileAccessController fileAccessController;
+    private BlockingQueue<LogEntry> logQueue;
 
-        // Create a temporary directory for server files
-        Path tempDir = Files.createTempDirectory("test_server_root");
-        System.out.println("Diretório temporário criado: " + tempDir);
+    @BeforeAll
+    static void setUpBeforeAll() throws IOException {
+        System.out.println("[SETUP] Creating temporary test directory...");
+        // Create temporary directory for server files
+        tempDir = Files.createTempDirectory("test_server_root");
+        System.out.println("[SETUP] Temporary directory created at: " + tempDir);
 
-        // Create a test file (index.html)
-        Path indexFile = tempDir.resolve("index.html");
-        Files.write(indexFile, "<html><body><h1>Test Page</h1></body></html>".getBytes());
-        System.out.println("Arquivo index.html criado");
+        // Create test files
+        System.out.println("[SETUP] Creating test files (index.html, 404.html)...");
+        Files.write(tempDir.resolve("index.html"),
+                "<html><body><h1>Test Page</h1></body></html>".getBytes());
+        Files.write(tempDir.resolve("404.html"),
+                "<html><body><h1>404 Not Found</h1></body></html>".getBytes());
+    }
 
-        // Create 404.html file
-        Path notFoundFile = tempDir.resolve("404.html");
-        Files.write(notFoundFile, "<html><body><h1>404 Not Found</h1></body></html>".getBytes());
-        System.out.println("Arquivo 404.html criado");
+    @AfterAll
+    static void tearDownAfterAll() throws IOException {
+        System.out.println("[TEARDOWN] Cleaning up temporary directory...");
+        // Clean up temporary directory
+        Files.walk(tempDir)
+                .sorted(java.util.Comparator.reverseOrder())
+                .forEach(path -> {
+                    try { Files.delete(path); }
+                    catch (IOException e) {
+                        System.err.println("[WARNING] Failed to delete: " + path);
+                    }
+                });
+        System.out.println("[TEARDOWN] Cleanup complete");
+    }
 
-        // Configure ServerConfig for testing
-        ServerConfig config = new ServerConfig();
+    @BeforeEach
+    void setUp() {
+        System.out.println("\n[TEST SETUP] Configuring test environment...");
+        // Configure server settings for testing
+        config = new ServerConfig();
         config.setConfig("server.root", tempDir.toString());
         config.setConfig("server.document.root", tempDir.toString());
         config.setConfig("server.default.page", "index");
         config.setConfig("server.default.page.extension", "html");
         config.setConfig("server.page.404", "404.html");
-        System.out.println("Configurações do servidor definidas");
 
-        // Create necessary dependencies
-        FileAccessController fileAccessController = new FileAccessController(config);
-        BlockingQueue<LogEntry> logQueue = new LinkedBlockingQueue<>();
-
-        // Test valid request
-        System.out.println("\n=== Testando requisição válida ===");
-        testValidRequest(config, fileAccessController, logQueue);
-
-        // Test invalid request
-        System.out.println("\n=== Testando requisição inválida ===");
-        testInvalidRequest(config, fileAccessController, logQueue);
-
-        // Verify logs
-        System.out.println("\n=== Verificando logs ===");
-        while (!logQueue.isEmpty()) {
-            LogEntry log = logQueue.take();
-            System.out.println("Log entry: " + log.toJSON());
-        }
-
-        System.out.println("\n=== Teste concluído com sucesso ===");
+        fileAccessController = new FileAccessController(config);
+        logQueue = new LinkedBlockingQueue<>();
+        System.out.println("[TEST SETUP] Configuration complete");
     }
 
-    private static void testValidRequest(ServerConfig config, FileAccessController fac, BlockingQueue<LogEntry> logQueue) throws Exception {
-
+    @Test
+    @DisplayName("Test valid GET request")
+    void testHandleValidGetRequest() throws Exception {
+        System.out.println("\n[TEST] Starting valid GET request test...");
         try (ServerSocket testServer = new ServerSocket(0)) {
-            System.out.println("Servidor de teste iniciado na porta: " + testServer.getLocalPort());
+            int port = testServer.getLocalPort();
+            System.out.println("[TEST] Test server started on port: " + port);
 
-            // Start thread to simulate the handler
+            // Start handler in separate thread
             new Thread(() -> {
                 try (Socket clientSocket = testServer.accept()) {
-                    System.out.println("Conexão de teste aceita");
-                    ClientHandler handler = new ClientHandler(clientSocket, config, fac, logQueue);
-                    handler.run();
+                    System.out.println("[HANDLER] Connection accepted, starting handler...");
+                    new ClientHandler(clientSocket, config, fileAccessController, logQueue).run();
+                    System.out.println("[HANDLER] Handler completed");
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    System.err.println("[HANDLER ERROR] " + e.getMessage());
+                    fail("Handler error: " + e.getMessage());
                 }
             }).start();
 
-            // Simulate client making a valid GET request
-            try (Socket client = new Socket("localhost", testServer.getLocalPort());
+            // Simulate client making valid GET request
+            try (Socket client = new Socket("localhost", port);
                  PrintWriter out = new PrintWriter(client.getOutputStream(), true);
                  BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()))) {
 
-                System.out.println("Enviando requisição GET /index.html");
+                System.out.println("[CLIENT] Sending GET /index.html request...");
                 out.println("GET /index.html HTTP/1.1");
                 out.println("Host: localhost");
                 out.println();
 
-                // Read response
-                System.out.println("Resposta do servidor:");
-                String line;
-                while ((line = in.readLine()) != null) {
-                    System.out.println(line);
-                    if (line.isEmpty()) {
-                        break;
-                    }
-                }
+                // Read and verify response
+                String response = readResponse(in);
+                System.out.println("[CLIENT] Received response:\n" + response);
 
-                // Read Content
-                StringBuilder content = new StringBuilder();
-                while (in.ready()) {
-                    content.append((char) in.read());
-                }
-                System.out.println("Conteúdo recebido:\n" + content);
+                assertTrue(response.contains("HTTP/1.1 200 OK"), "Should return 200 status");
+                assertTrue(response.contains("<h1>Test Page</h1>"), "Should contain index.html content");
+                System.out.println("[TEST] Valid GET request test passed");
             }
         }
     }
 
-    private static void testInvalidRequest(ServerConfig config, FileAccessController fac, BlockingQueue<LogEntry> logQueue) throws Exception {
-        // Start thread to simulate the handler
+    @Test
+    @DisplayName("Test invalid GET request (file not found)")
+    void testHandleInvalidGetRequest() throws Exception {
+        System.out.println("\n[TEST] Starting invalid GET request test...");
         try (ServerSocket testServer = new ServerSocket(0)) {
-            System.out.println("Servidor de teste iniciado na porta: " + testServer.getLocalPort());
+            int port = testServer.getLocalPort();
+            System.out.println("[TEST] Test server started on port: " + port);
 
+            // Start handler in separate thread
             new Thread(() -> {
                 try (Socket clientSocket = testServer.accept()) {
-                    System.out.println("Conexão de teste aceita");
-                    ClientHandler handler = new ClientHandler(clientSocket, config, fac, logQueue);
-                    handler.run();
+                    System.out.println("[HANDLER] Connection accepted, starting handler...");
+                    new ClientHandler(clientSocket, config, fileAccessController, logQueue).run();
+                    System.out.println("[HANDLER] Handler completed");
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    System.err.println("[HANDLER ERROR] " + e.getMessage());
+                    fail("Handler error: " + e.getMessage());
                 }
             }).start();
 
-            // Simulate client making an invalid GET request
-            try (Socket client = new Socket("localhost", testServer.getLocalPort());
+            // Simulate client making invalid GET request
+            try (Socket client = new Socket("localhost", port);
                  PrintWriter out = new PrintWriter(client.getOutputStream(), true);
                  BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()))) {
 
-                System.out.println("Enviando requisição GET /arquivo_inexistente.html");
-                out.println("GET /arquivo_inexistente.html HTTP/1.1");
+                System.out.println("[CLIENT] Sending GET /nonexistent.html request...");
+                out.println("GET /nonexistent.html HTTP/1.1");
                 out.println("Host: localhost");
                 out.println();
 
-                // Read response
-                System.out.println("Resposta do servidor:");
-                String line;
-                while ((line = in.readLine()) != null) {
-                    System.out.println(line);
-                    if (line.isEmpty()) {
-                        break;
-                    }
-                }
+                // Read and verify response
+                String response = readResponse(in);
+                System.out.println("[CLIENT] Received response:\n" + response);
 
-                // Read content
-                StringBuilder content = new StringBuilder();
-                while (in.ready()) {
-                    content.append((char) in.read());
-                }
-                System.out.println("Conteúdo recebido:\n" + content);
+                assertTrue(response.contains("HTTP/1.1 404 Not Found"), "Should return 404 status");
+                assertTrue(response.contains("<h1>404 Not Found</h1>"), "Should contain 404.html content");
+                System.out.println("[TEST] Invalid GET request test passed");
             }
         }
+    }
+
+    private String readResponse(BufferedReader in) throws IOException {
+        StringBuilder response = new StringBuilder();
+        String line;
+        while ((line = in.readLine()) != null) {
+            response.append(line).append("\n");
+            if (line.isEmpty()) {
+                // Read content if available
+                while (in.ready()) {
+                    response.append((char) in.read());
+                }
+                break;
+            }
+        }
+        return response.toString();
     }
 }
