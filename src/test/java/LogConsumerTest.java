@@ -64,7 +64,7 @@ class LogConsumerTest {
     void testMultipleLogEntriesAreWritten() throws InterruptedException, IOException {
         //Creates several log entries
         LogEntry entry1 = new LogEntry("2024-03-28 12:00:00.000", "GET", "/", "127.0.0.1", 200);
-        LogEntry entry2 = new LogEntry("2024-03-28 12:00:01.000", "GET", "/about.html", "192.168.1.1", 200);
+        LogEntry entry2 = new LogEntry("2024-03-28 12:00:01.000", "GET", "/index.html", "192.168.1.1", 200);
         LogEntry entry3 = new LogEntry("2024-03-28 12:00:02.000", "GET", "/nonexistent.html", "10.0.0.1", 404);
 
         //Add the entrys to the queue
