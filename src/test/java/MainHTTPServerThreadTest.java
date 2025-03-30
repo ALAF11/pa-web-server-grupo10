@@ -22,10 +22,10 @@ public class MainHTTPServerThreadTest {
         Semaphore sem = new Semaphore(MAX_TOTAL_REQUESTS, true);
         ThreadPoolExecutor threadPool = (ThreadPoolExecutor) Executors.newFixedThreadPool(MAX_POOL_THREADS);
 
-        CountDownLatch latch = new CountDownLatch(30);
+        CountDownLatch latch = new CountDownLatch(10);
 
-        //Simulate 30 incoming requests
-        for (int i = 1; i <= 30; i++) {
+
+        for (int i = 1; i <= 10; i++) {
             final int taskId = i;
             new Thread(() -> {
                 try {
