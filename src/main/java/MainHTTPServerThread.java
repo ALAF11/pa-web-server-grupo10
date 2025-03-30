@@ -1,17 +1,16 @@
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Semaphore;
 
 /**
- * The MainHTTPServerThread class represents an HTTP server that listens on a specified port.
- * It serves files from a predefined server root directory and manages client requests using a thread pool.
+ * The MainHTTPServerThread class implements the core HTTP server that listens on a specified port.
  * <p>
- *     The server supports concurrent requests, limits the number of active requests using a semaphore,
- *     and logs activities throught a shared log queue.
+ * This thread handles incoming HTTP requests, manages concurrent connections using
+ * a configured thread pool and enforces requests limits through a semaphore. It
+ * coordinates with other components to serve files securely
+ * and maintain request logs in JSON format.
  */
 
 public class MainHTTPServerThread extends Thread {
@@ -23,13 +22,14 @@ public class MainHTTPServerThread extends Thread {
     private final Semaphore requestLimiter;
 
     /**
-     * Constructs a new MainHTTPServerThreads with the specified configuration, thread pool, file acess controller, log queue, and request limiter.
+     * Constructs a new MainHTTPServerThreads with the specified configuration,
+     * thread pool, file access controller, log queue, and request limiter.
      *
      * @param config The server configuration containing settings such as port and root directories.
      * @param threadPool The thread pool used to handle client requests.
      * @param fileAccessController The controller managing file access permissions.
      * @param logQueue The queue for logging server activities.
-     * @param requestLimiter The semaphore to limit the number of concurrent
+     * @param requestLimiter The semaphore to limit the number of concurrent requests limit.
      */
 
     public MainHTTPServerThread(ServerConfig config, ThreadPool threadPool, FileAccessController fileAccessController, BlockingQueue<LogEntry> logQueue, Semaphore requestLimiter) {
@@ -41,49 +41,22 @@ public class MainHTTPServerThread extends Thread {
     }
 
     /**
-     * Reads a binary file and returns its contents as a byte array.
-     *
-     * @param path The file path to read.
-     * @return A byte array containing the file's contents, or an empty array if an error occurs.
-     */
-
-    private byte[] readBinaryFile(String path) {
-        try {
-            return Files.readAllBytes(Paths.get(path));
-        } catch (IOException e) {
-            System.err.println("Error reading file: " + path);
-            e.printStackTrace();
-            return new byte[0];
-        }
-    }
-
-    /**
-     * Reads a text file and returns its contents as a string.
-     *
-     * @param path The file path to read.
-     * @return A string containing the file's contents, or an empty string if an error occurs.
-     */
-
-    private String readFile(String path) {
-        StringBuilder content = new StringBuilder();
-        try (BufferedReader reader = new BufferedReader(new FileReader(path))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                content.append(line).append("\n");
-            }
-        } catch (IOException e) {
-            System.err.println("Error reading file: " + path);
-            e.printStackTrace();
-        }
-        return content.toString();
-    }
-
-    /**
      * Starts the HTTP server and listens for incoming client requests.
      * Processes HTTP GET requests and serves files from the defined server root directory.
      * <p>
-     * The server runs indefinitely until interrupted. Each client request is handled by a thread
-     * From the thread pool, and the number of concurrent requests is limited by the semaphore.
+     * The server runs indefinitely until interrupted, performing the following operarions:
+     * 1. Listen on the configured port for incoming connections
+     * 2. Acquire a permit from the semaphore for each new request
+     * 3. Delegates request processing to the thread pool
+     * 4. Releases the semaphore permit when processing completes
+     * <p>
+     * On interruption or IO error, the server shuts down by:
+     * 1. Interrupting the current thread
+     * 2. Shutting down the thread pool
+     * 3. Closing all resources
+     *
+     * @throws IOException if the server socket cannot be created or fails
+     * @throws InterruptedException if the thread is interrupted during semaphore operations.
      */
 
     @Override
