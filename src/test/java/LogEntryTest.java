@@ -16,8 +16,8 @@ public class LogEntryTest {
                 200
         );
 
-        String actualJSON = entry.toJSON();
-        System.out.println("=== JSON Gerado ===\n" + actualJSON);
+        String currentJSON = entry.toJSON();
+        System.out.println("=== JSON file ===\n" + currentJSON);
 
         String expectedJSON =
                 "{\n"+
