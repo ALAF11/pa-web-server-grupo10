@@ -7,11 +7,14 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * The FileAccessController class manager thread-safe file access operations for the HTTP server.
+ * The FileAccessController class manages thread-safe file access operations for the HTTP server.
  * <p>
- *     This class implements a file locking mechanism to prevent concurrent modifications and
- *     pah transversal attacks. It maintains a map of file locks to ensure exclusive access
- *     to files during read operations.
+ * This class implements a file locking mechanism to prevent concurrent modifications and
+ * path transversal attacks. It maintains a map of file locks to ensure exclusive access
+ * to files during read operations using ReentrantLock with fair ordering policy.
+ * <p>
+ * The locking mechanism includes timeout protection to prevent deadlocks. Each file
+ * path has its own dedicated lock object managed in a concurrent hash map.
  *
  * @see ReentrantLock
  * @see ConcurrentHashMap
@@ -24,9 +27,12 @@ public class FileAccessController {
     private static final long LOCK_TIMEOUT_SECONDS = 5;
 
     /**
-     *  Constructs a new FileAccessController with the specified server configuration.
+     * Constructs a new FileAccessController with the specified server configuration.
+     * <p>
+     * The configuration object must contain valid server root directory and default page settings.
+     * The controller will use these settings for all file access operations.
      *
-     * @param config the ServerConfig object containing server configuration parameters
+     * @param config the ServerConfig object containing server configuration parameters.
      */
 
     public FileAccessController(ServerConfig config) {
@@ -36,15 +42,19 @@ public class FileAccessController {
     /**
      * Reads a file from the server's root directory with a thread-safe access control.
      * <p>
-     *     This method performs several security checks and operations:
+     * This method performs several security checks and operations in sequence:
      * Validates the requested path against the server root to prevent path traversal.
      * Acquires an exclusive lock for the life with timeout.
      * Verifies file existence and type.
      * Reads file contents and releases the lock and cleans up.
+     * <p>
+     * Lock acquisition follows strict first-come-first-served ordering due to fair locking.
+     * The method guarantees lock release even if an exception occurs during the file reading.
      *
      * @param route the relative path of the file to read from server root
+     *              If null or empty, defaults to configured default page.
      * @return byte array containing the file contents
-     * @throws IOException if path traversak attempt is detected,
+     * @throws IOException if path traversal attempt is detected,
      * file is not found,
      * path is a directory,
      * timeout occurs while waiting for file lock or
