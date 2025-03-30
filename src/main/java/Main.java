@@ -5,16 +5,27 @@ import java.util.concurrent.Semaphore;
 
 /**
  * The Main class is the entry point for the HTTP server application.
- * <p> This class initializes all server component including configuration,
- * thread pool, acess controller, and logging system.
+ * <p>
+ * This class initializes all server component including configuration loading,
+ * thread pool setup, access controller, logging system and the main
+ * server thread. It establishes the foundation for the server´s operation.
  */
 
 public class Main {
 
     /**
      * The main method that starts the HTTP server.
-     *
-     * @param args command line argumments
+     * <p>
+     * The method performs the following initialization sequence:
+     * 1. Loads server configuration from server.config file
+     * 2. Sets up asynchronous logging system
+     * 3. Initializes file access controller
+     * 4. Creates thread pool with configured size
+     * 5. Configures request limiter semaphore
+     * 6. Starts main server thread
+     * <p>
+     * The server runs until interrupted, handling all client
+     * requests within the configured concurrency limits.
      */
 
     public static void main(String[] args) {
