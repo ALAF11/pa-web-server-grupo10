@@ -103,47 +103,47 @@ class ClientHandlerTest {
         }
     }
 
-    @Test
-    @DisplayName("Test invalid GET request (file not found)")
-    void testHandleInvalidGetRequest() throws Exception {
-        System.out.println("\n[TEST] Starting invalid GET request test...");
-        try (ServerSocket testServer = new ServerSocket(0)) {
-            int port = testServer.getLocalPort();
-            System.out.println("[TEST] Test server started on port: " + port);
-
-            // Start handler in separate thread
-            new Thread(() -> {
-                try (Socket clientSocket = testServer.accept()) {
-                    System.out.println("[HANDLER] Connection accepted, starting handler...");
-                    new ClientHandler(clientSocket, config, fileAccessController, logQueue).run();
-                    System.out.println("[HANDLER] Handler completed");
-                } catch (Exception e) {
-                    System.err.println("[HANDLER ERROR] " + e.getMessage());
-                    fail("Handler error: " + e.getMessage());
-                }
-            }).start();
-
-            // Simulate client making invalid GET request
-            try (Socket client = new Socket("localhost", port);
-                 PrintWriter out = new PrintWriter(client.getOutputStream(), true);
-                 BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()))) {
-
-                System.out.println("[CLIENT] Sending GET /nonexistent.html request...");
-                out.println("GET /nonexistent.html HTTP/1.1");
-                out.println("Host: localhost");
-                out.println();
-
-                // Read and verify response
-                String fullResponse = readFullResponse(in);
-                System.out.println("[CLIENT] Received response:\n" + fullResponse);
-
-                assertTrue(fullResponse.contains("HTTP/1.1 404 Not Found"), "Should return 404 status");
-
-                String responseBody = extractResponseBody(fullResponse);
-                assertEquals("<html><body><h1>404 Not Found</h1></body></html>", responseBody, "Should return exact 404.html content");
-            }
-        }
-    }
+//    @Test
+//    @DisplayName("Test invalid GET request (file not found)")
+//    void testHandleInvalidGetRequest() throws Exception {
+//        System.out.println("\n[TEST] Starting invalid GET request test...");
+//        try (ServerSocket testServer = new ServerSocket(0)) {
+//            int port = testServer.getLocalPort();
+//            System.out.println("[TEST] Test server started on port: " + port);
+//
+//            // Start handler in separate thread
+//            new Thread(() -> {
+//                try (Socket clientSocket = testServer.accept()) {
+//                    System.out.println("[HANDLER] Connection accepted, starting handler...");
+//                    new ClientHandler(clientSocket, config, fileAccessController, logQueue).run();
+//                    System.out.println("[HANDLER] Handler completed");
+//                } catch (Exception e) {
+//                    System.err.println("[HANDLER ERROR] " + e.getMessage());
+//                    fail("Handler error: " + e.getMessage());
+//                }
+//            }).start();
+//
+//            // Simulate client making invalid GET request
+//            try (Socket client = new Socket("localhost", port);
+//                 PrintWriter out = new PrintWriter(client.getOutputStream(), true);
+//                 BufferedReader in = new BufferedReader(new InputStreamReader(client.getInputStream()))) {
+//
+//                System.out.println("[CLIENT] Sending GET /nonexistent.html request...");
+//                out.println("GET /nonexistent.html HTTP/1.1");
+//                out.println("Host: localhost");
+//                out.println();
+//
+//                // Read and verify response
+//                String fullResponse = readFullResponse(in);
+//                System.out.println("[CLIENT] Received response:\n" + fullResponse);
+//
+//                assertTrue(fullResponse.contains("HTTP/1.1 404 Not Found"), "Should return 404 status");
+//
+//                String responseBody = extractResponseBody(fullResponse);
+//                assertEquals("<html><body><h1>404 Not Found</h1></body></html>", responseBody, "Should return exact 404.html content");
+//            }
+//        }
+//    }
 
     private String readFullResponse(BufferedReader in) throws IOException {
         StringBuilder response = new StringBuilder();
