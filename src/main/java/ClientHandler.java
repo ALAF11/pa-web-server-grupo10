@@ -14,7 +14,7 @@ import java.util.concurrent.BlockingQueue;
  * It processes HTTP requests, serves files from the server's root directory, and logs all requests
  * to a centralized logging system.
  * The class implements proper file access control, error handling,
- * and concurrent request management.
+ * and concurrent request management via {@link BlockingQueue}.
  */
 
 public class ClientHandler implements Runnable {
@@ -31,6 +31,7 @@ public class ClientHandler implements Runnable {
      * @param config the ServerConfig containing server configuration parameters
      * @param fileAccessController the FileAccessController for thread-safe file operations
      * @param logQueue the BlockingQueue for asynchronous log processing
+     * @throws IllegalArgumentException if any parameter is <code>null</code>
      */
 
     public ClientHandler(Socket client, ServerConfig config, FileAccessController fileAccessController, BlockingQueue<LogEntry> logQueue ) {
@@ -47,6 +48,9 @@ public class ClientHandler implements Runnable {
      * This method reads the HTTP request, processes it, serves the appropriate file (or error page),
      * and logs the transaction. It implements proper resource management by ensuring all streams
      * and sockets are closed after processing.
+     *
+     * @throws RuntimeException if an IO error occurs during request processing
+     * or if the thread is interrupted.
      */
 
     @Override
@@ -56,7 +60,6 @@ public class ClientHandler implements Runnable {
 
             OutputStream clientOutput = client.getOutputStream()) {
 
-            // Read and parse the HTTP request
             StringBuilder requestBuilder = new StringBuilder();
             String line;
             while ((line = reader.readLine()) != null && !line.isBlank()) {
@@ -86,7 +89,6 @@ public class ClientHandler implements Runnable {
             } catch (IOException | InterruptedException e) {
                 try {
                     content = Files.readAllBytes(Paths.get(config.getConfig("server.root") + "/" + config.getConfig("server.page.404")));
-                    //httpStatus = 404;
                 } catch (IOException ex) {
                     content = "<html><body><h1>404 Not Found</h1></body></html>".getBytes();
 
