@@ -24,7 +24,7 @@ O **pa-web-server** é um servidor web multi-threaded que serve páginas HTML es
 - **Trancas (Locks)** - Sincronização de recursos
 - **Maven** - Gestão de dependências
 - **JaCoCo** - Relatórios de cobertura de código
-- **JUnit Jupiter 5.8.2** - Testes unitários
+- **JUnit Jupiter** - Testes unitários
 
 ## Pré-requisitos
 
