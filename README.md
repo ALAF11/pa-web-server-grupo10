@@ -6,7 +6,7 @@ Servidor Web paralelo desenvolvido em Java para a disciplina de Programação Av
 
 O **pa-web-server** é um servidor web multi-threaded que serve páginas HTML estáticas de forma paralela, implementando conceitos avançados de programação concorrente em Java. O projeto demonstra o uso de threads, semáforos, trancas e padrões arquiteturais para desenvolvimento paralelo.
 
-### Funcionalidades Principais
+## Funcionalidades Principais
 
 - Servir páginas HTML estáticas de diretórios e subdiretórios
 - Processamento paralelo de até 5 pedidos simultâneos
@@ -38,4 +38,4 @@ O **pa-web-server** é um servidor web multi-threaded que serve páginas HTML es
 
 ## Como Visualizar
 
-Após a execução, abra o browser e aceda a - [http://localhost:8888]
+Após a execução, abra o browser e aceda a [http://localhost:8888]
