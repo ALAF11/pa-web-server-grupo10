@@ -35,3 +35,7 @@ O **pa-web-server** é um servidor web multi-threaded que serve páginas HTML es
 
 - Abrir o projeto no IDE
 - Executar a classe `Main.java`
+
+## Como Visualizar
+
+Após a execução, abra o browser e aceda a - [http://localhost:8888]
